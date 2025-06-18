@@ -1,0 +1,38 @@
+using Google.Cloud.Firestore;
+
+namespace BusFinderBackend.Model
+{
+    [FirestoreData]
+    public class Staff
+    {
+        [FirestoreDocumentId]
+        public string? StaffId { get; set; } // Primary Key
+
+        [FirestoreProperty]
+        public string? FirstName { get; set; }
+
+        [FirestoreProperty]
+        public string? LastName { get; set; }
+
+        [FirestoreProperty]
+        public string? ProfilePicture { get; set; }
+
+        [FirestoreProperty]
+        public string? NIC { get; set; }
+
+        [FirestoreProperty]
+        public string? TelNo { get; set; }
+
+        [FirestoreProperty]
+        public string? Profile { get; set; }
+
+        [FirestoreProperty]
+        public string? PreferredLanguage { get; set; }
+
+        [FirestoreProperty]
+        public string? Email { get; set; }
+
+        [FirestoreProperty]
+        public string? Password { get; set; }
+    }
+}
