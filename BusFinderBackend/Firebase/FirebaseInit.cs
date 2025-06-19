@@ -1,5 +1,7 @@
 using Google.Cloud.Firestore;
+using Google.Apis.Auth.OAuth2;
 using Microsoft.Extensions.Configuration;
+using System;
 
 namespace BusFinderBackend.Firebase
 {
@@ -7,14 +9,22 @@ namespace BusFinderBackend.Firebase
     {
         public static FirestoreDb InitializeFirestore(IConfiguration configuration)
         {
+            // Retrieve the Project ID from config (still fine to use this)
             var firebaseSection = configuration.GetSection("Firebase");
-            var credentialPath = firebaseSection["ServiceAccountPath"];
             var projectId = firebaseSection["ProjectId"];
+
+            // Get the credential JSON from environment variable
+            var credentialJson = Environment.GetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS_JSON");
+
+            if (string.IsNullOrWhiteSpace(credentialJson))
+            {
+                throw new InvalidOperationException("Missing Google credentials JSON in environment variable.");
+            }
 
             var builder = new FirestoreDbBuilder
             {
                 ProjectId = projectId,
-                Credential = Google.Apis.Auth.OAuth2.GoogleCredential.FromFile(credentialPath)
+                Credential = GoogleCredential.FromJson(credentialJson)
             };
 
             return builder.Build();
