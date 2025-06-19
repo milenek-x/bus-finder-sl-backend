@@ -16,7 +16,7 @@ namespace BusFinderBackend.Firebase
 
             // Try to get the credential JSON from environment variable
             var credentialJson = Environment.GetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS_JSON");
-            GoogleCredential credential = null;
+            GoogleCredential credential;
 
             if (!string.IsNullOrWhiteSpace(credentialJson))
             {
