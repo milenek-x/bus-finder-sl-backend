@@ -2,6 +2,7 @@ using Google.Cloud.Firestore;
 using Google.Apis.Auth.OAuth2;
 using Microsoft.Extensions.Configuration;
 using System;
+using System.IO;
 
 namespace BusFinderBackend.Firebase
 {
@@ -13,18 +14,33 @@ namespace BusFinderBackend.Firebase
             var firebaseSection = configuration.GetSection("Firebase");
             var projectId = firebaseSection["ProjectId"];
 
-            // Get the credential JSON from environment variable
+            // Try to get the credential JSON from environment variable
             var credentialJson = Environment.GetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS_JSON");
+            GoogleCredential credential = null;
 
-            if (string.IsNullOrWhiteSpace(credentialJson))
+            if (!string.IsNullOrWhiteSpace(credentialJson))
             {
-                throw new InvalidOperationException("Missing Google credentials JSON in environment variable.");
+                credential = GoogleCredential.FromJson(credentialJson);
+            }
+            else
+            {
+                // Fallback: try to get the file path from env or config
+                var credentialPath = Environment.GetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS");
+                if (string.IsNullOrWhiteSpace(credentialPath))
+                {
+                    credentialPath = firebaseSection["CredentialsFilePath"];
+                }
+                if (string.IsNullOrWhiteSpace(credentialPath) || !File.Exists(credentialPath))
+                {
+                    throw new InvalidOperationException("Missing Google credentials: neither JSON env var nor valid file path found.");
+                }
+                credential = GoogleCredential.FromFile(credentialPath);
             }
 
             var builder = new FirestoreDbBuilder
             {
                 ProjectId = projectId,
-                Credential = GoogleCredential.FromJson(credentialJson)
+                Credential = credential
             };
 
             return builder.Build();
