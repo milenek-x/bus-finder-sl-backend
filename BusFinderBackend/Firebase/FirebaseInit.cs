@@ -31,7 +31,7 @@ namespace BusFinderBackend.Firebase
                     credentialPath = firebaseSection["CredentialsFilePath"];
                 }
                 if (string.IsNullOrWhiteSpace(credentialPath) || !File.Exists(credentialPath))
-                {
+                {   
                     throw new InvalidOperationException("Missing Google credentials: neither JSON env var nor valid file path found.");
                 }
                 credential = GoogleCredential.FromFile(credentialPath);

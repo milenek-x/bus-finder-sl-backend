@@ -5,21 +5,37 @@ using Google.Cloud.Firestore;
 using FirebaseAdmin;
 using Google.Apis.Auth.OAuth2;
 using Microsoft.Extensions.Configuration; // Ensure this is present for IConfiguration
+using System.IO;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Get the credential JSON from the environment variable
+// Get the credential for Firebase Admin SDK using the same logic as FirebaseInit
+var firebaseSection = builder.Configuration.GetSection("Firebase");
 var credentialJson = Environment.GetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS_JSON");
+GoogleCredential firebaseCredential;
 
-if (string.IsNullOrWhiteSpace(credentialJson))
+if (!string.IsNullOrWhiteSpace(credentialJson))
 {
-    throw new InvalidOperationException("Missing Google credentials JSON in environment variable 'GOOGLE_APPLICATION_CREDENTIALS_JSON'.");
+    firebaseCredential = GoogleCredential.FromJson(credentialJson);
+}
+else
+{
+    var credentialPath = Environment.GetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS");
+    if (string.IsNullOrWhiteSpace(credentialPath))
+    {
+        credentialPath = firebaseSection["CredentialsFilePath"];
+    }
+    if (string.IsNullOrWhiteSpace(credentialPath) || !File.Exists(credentialPath))
+    {
+        throw new InvalidOperationException("Missing Google credentials: neither JSON env var nor valid file path found.");
+    }
+    firebaseCredential = GoogleCredential.FromFile(credentialPath);
 }
 
-// Initialize Firebase Admin SDK using the credential JSON
+// Initialize Firebase Admin SDK using the credential
 FirebaseApp.Create(new AppOptions()
 {
-    Credential = GoogleCredential.FromJson(credentialJson)
+    Credential = firebaseCredential
 });
 
 // Add services to the container.
