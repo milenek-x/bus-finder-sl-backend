@@ -13,7 +13,7 @@ namespace BusFinderBackend.Repositories
 
         public PlaceRepository(FirestoreDb firestoreDb)
         {
-            _placesCollection = firestoreDb.Collection("places");
+            _placesCollection = firestoreDb.Collection("testPlaces");
             _firestoreDb = firestoreDb;
         }
 
@@ -22,6 +22,7 @@ namespace BusFinderBackend.Repositories
             var snapshot = await _placesCollection.GetSnapshotAsync();
             var placesList = new List<Place>();
             foreach (var doc in snapshot.Documents)
+            
             {
                 var place = doc.ConvertTo<Place>();
                 place.PlaceId = doc.Id; // Assuming PlaceId is the document ID
