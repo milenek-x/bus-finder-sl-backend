@@ -30,6 +30,9 @@ namespace BusFinderBackend.Model // Ensure this matches your project's namespace
 
         [JsonPropertyName("user_ratings_total")]
         public int? UserRatingsTotal { get; set; }
+
+        [JsonPropertyName("photos")]
+        public List<Photo>? Photos { get; set; }
     }
 
     public class Geometry
@@ -47,4 +50,9 @@ namespace BusFinderBackend.Model // Ensure this matches your project's namespace
         public double Lng { get; set; }
     }
 
+    public class Photo
+    {
+        [JsonPropertyName("photo_reference")]
+        public string? PhotoReference { get; set; }
+    }
 }

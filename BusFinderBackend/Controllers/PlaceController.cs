@@ -69,5 +69,23 @@ namespace BusFinderBackend.Controllers
             await _placeService.DeletePlaceAsync(id);
             return NoContent();
         }
+
+        [HttpGet("search/google/{name}")]
+        public async Task<ActionResult<List<Place>>> SearchUsingGoogleApi(string name)
+        {
+            var places = await _placeService.SearchPlacesUsingGoogleApiAsync(name);
+            if (places == null || places.Count == 0)
+                return NotFound(new { message = "No places found." });
+            return Ok(places);
+        }
+
+        [HttpGet("search/firebase/{partialName}")]
+        public async Task<ActionResult<List<Place>>> SearchPlacesByPartialName(string partialName)
+        {
+            var places = await _placeService.SearchPlacesByPartialNameAsync(partialName);
+            if (places == null || places.Count == 0)
+                return NotFound(new { message = "No places found matching the search criteria." });
+            return Ok(places);
+        }
     }
 }
