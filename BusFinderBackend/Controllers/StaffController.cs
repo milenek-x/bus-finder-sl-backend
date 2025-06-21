@@ -91,7 +91,15 @@ namespace BusFinderBackend.Controllers
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] StaffLoginRequest request)
         {
-            var result = await _staffService.LoginAsync(request.Email!, request.Password!);
+            var firebaseSection = _configuration.GetSection("Firebase");
+            var apiKey = firebaseSection["ApiKey"];
+            if (string.IsNullOrEmpty(apiKey))
+            {
+                return StatusCode(500, new { error = "NO_API_KEY", message = "Firebase API key is not configured." });
+            }
+
+            var result = await Firebase.FirebaseAuthHelper.LoginWithEmailPasswordAsync(apiKey, request.Email!, request.Password!);
+
             if (!result.Success)
             {
                 return Unauthorized(new
@@ -100,7 +108,12 @@ namespace BusFinderBackend.Controllers
                     message = result.ErrorMessage
                 });
             }
-            return Ok(new { message = "Login successful." });
+
+            return Ok(new
+            {
+                token = result.IdToken,
+                refreshToken = result.RefreshToken
+            });
         }
 
         public class StaffPasswordUpdateRequest
