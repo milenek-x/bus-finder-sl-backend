@@ -40,9 +40,28 @@ namespace BusFinderBackend.Services
 
         public async Task<(bool Success, string? ErrorCode, string? ErrorMessage)> AddStaffAsync(Staff staff)
         {
+            var firebaseSection = _configuration.GetSection("Firebase");
+            var apiKey = firebaseSection["ApiKey"];
+            if (string.IsNullOrEmpty(apiKey))
+            {
+                return (false, "NO_API_KEY", "Firebase API key is not configured.");
+            }
+
             if (string.IsNullOrEmpty(staff.StaffId))
             {
                 staff.StaffId = await _staffRepository.GenerateNextStaffIdAsync();
+            }
+
+            // Create user in Firebase Authentication
+            var result = await Firebase.FirebaseAuthHelper.CreateUserAsync(apiKey, staff.Email!, staff.Password!);
+
+            if (!result.Success)
+            {
+                if (result.ErrorCode == "EMAIL_EXISTS")
+                {
+                    return (false, "EMAIL_EXISTS", "This email is already registered.");
+                }
+                return (false, result.ErrorCode, result.ErrorMessage);
             }
 
             await _staffRepository.AddStaffAsync(staff);
@@ -54,9 +73,26 @@ namespace BusFinderBackend.Services
             return _staffRepository.UpdateStaffAsync(staffId, staff);
         }
 
-        public Task DeleteStaffAsync(string staffId)
+        public async Task DeleteStaffAsync(string staffId)
         {
-            return _staffRepository.DeleteStaffAsync(staffId);
+            // Get the staff by ID
+            var staff = await _staffRepository.GetStaffByIdAsync(staffId);
+            if (staff != null && !string.IsNullOrEmpty(staff.Email))
+            {
+                try
+                {
+                    var userRecord = await FirebaseAuth.DefaultInstance.GetUserByEmailAsync(staff.Email);
+                    if (userRecord != null)
+                    {
+                        await FirebaseAuth.DefaultInstance.DeleteUserAsync(userRecord.Uid);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, $"Failed to delete staff from Firebase Authentication: {staff.Email}");
+                }
+            }
+            await _staffRepository.DeleteStaffAsync(staffId);
         }
 
         public async Task<(bool Success, string? ErrorCode, string? ErrorMessage)> LoginAsync(string email, string password)

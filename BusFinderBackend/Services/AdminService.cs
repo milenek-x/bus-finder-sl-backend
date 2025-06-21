@@ -69,9 +69,26 @@ namespace BusFinderBackend.Services
             return _adminRepository.UpdateAdminAsync(adminId, admin);
         }
 
-        public Task DeleteAdminAsync(string adminId)
+        public async Task DeleteAdminAsync(string adminId)
         {
-            return _adminRepository.DeleteAdminAsync(adminId);
+            // Get the admin by ID
+            var admin = await _adminRepository.GetAdminByIdAsync(adminId);
+            if (admin != null && !string.IsNullOrEmpty(admin.Email))
+            {
+                try
+                {
+                    var userRecord = await FirebaseAuth.DefaultInstance.GetUserByEmailAsync(admin.Email);
+                    if (userRecord != null)
+                    {
+                        await FirebaseAuth.DefaultInstance.DeleteUserAsync(userRecord.Uid);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, $"Failed to delete admin from Firebase Authentication: {admin.Email}");
+                }
+            }
+            await _adminRepository.DeleteAdminAsync(adminId);
         }
 
         public async Task<string> GeneratePasswordResetLinkAsync(string email)
