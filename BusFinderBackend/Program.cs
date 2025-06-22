@@ -57,6 +57,8 @@ builder.Services.AddScoped<StaffService>();
 builder.Services.AddScoped<PlaceRepository>();
 builder.Services.AddScoped<PlaceService>();
 builder.Services.AddScoped<EmailService>();
+builder.Services.AddScoped<BusRouteRepository>();
+builder.Services.AddScoped<BusRouteService>();
 
 // Add Swagger/OpenAPI support (optional, but common for APIs)
 builder.Services.AddEndpointsApiExplorer();

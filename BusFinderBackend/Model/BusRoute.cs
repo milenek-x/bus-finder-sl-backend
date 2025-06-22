@@ -3,7 +3,7 @@ using Google.Cloud.Firestore;
 namespace BusFinderBackend.Model
 {
     [FirestoreData]
-    public class Route
+    public class BusRoute
     {
         [FirestoreDocumentId]
         public string? RouteNumber { get; set; }
@@ -12,9 +12,6 @@ namespace BusFinderBackend.Model
         public string? RouteName { get; set; }
 
         [FirestoreProperty]
-        public string? RouteDescription { get; set; }
-
-        [FirestoreProperty]
-        public List<string>? Stops { get; set; } // List of StopNames
+        public List<string>? RouteStops { get; set; } // List of StopNames
     }   
 }
