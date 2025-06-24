@@ -63,6 +63,8 @@ builder.Services.AddScoped<BusRepository>();
 builder.Services.AddScoped<BusService>();
 builder.Services.AddScoped<BusShiftRepository>();
 builder.Services.AddScoped<BusShiftService>();
+builder.Services.AddScoped<PassengerRepository>();
+builder.Services.AddScoped<PassengerService>();
 
 // Add Swagger/OpenAPI support (optional, but common for APIs)
 builder.Services.AddEndpointsApiExplorer();

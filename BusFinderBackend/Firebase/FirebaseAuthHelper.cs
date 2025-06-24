@@ -168,5 +168,56 @@ namespace BusFinderBackend.Firebase
                 };
             }
         }
+
+        public static async Task<FirebaseLoginResult> GoogleSignInAsync(string apiKey, string idToken)
+        {
+            using var client = new HttpClient();
+            var url = $"https://identitytoolkit.googleapis.com/v1/accounts:signInWithIdp?key={apiKey}";
+
+            var payload = new
+            {
+                idToken,
+                providerId = "google.com",
+                returnSecureToken = true
+            };
+
+            var content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
+            var response = await client.PostAsync(url, content);
+            var responseString = await response.Content.ReadAsStringAsync();
+
+            if (response.IsSuccessStatusCode)
+            {
+                using var doc = JsonDocument.Parse(responseString);
+                var idTokenResult = doc.RootElement.GetProperty("idToken").GetString();
+                var refreshToken = doc.RootElement.GetProperty("refreshToken").GetString();
+                return new FirebaseLoginResult
+                {
+                    Success = true,
+                    IdToken = idTokenResult,
+                    RefreshToken = refreshToken
+                };
+            }
+            else
+            {
+                string? errorCode = null;
+                string? errorMessage = null;
+                try
+                {
+                    using var doc = JsonDocument.Parse(responseString);
+                    if (doc.RootElement.TryGetProperty("error", out var error))
+                    {
+                        errorCode = error.GetProperty("message").GetString();
+                        errorMessage = errorCode;
+                    }
+                }
+                catch { }
+                return new FirebaseLoginResult
+                {
+                    Success = false,
+                    ErrorCode = errorCode,
+                    ErrorMessage = errorMessage ?? responseString
+                };
+            }
+        }
     }
 }
