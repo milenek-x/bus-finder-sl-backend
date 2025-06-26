@@ -9,6 +9,15 @@ using System.IO;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// CORS configuration
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowSpecificOrigin",
+        builder => builder.WithOrigins("http://localhost:3000")
+                          .AllowAnyMethod()
+                          .AllowAnyHeader());
+});
+
 // Get the credential for Firebase Admin SDK using the same logic as FirebaseInit
 var firebaseSection = builder.Configuration.GetSection("Firebase");
 var credentialJson = Environment.GetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS_JSON");
@@ -80,6 +89,9 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+// Use CORS
+app.UseCors("AllowSpecificOrigin");
 
 app.UseAuthorization();
 
