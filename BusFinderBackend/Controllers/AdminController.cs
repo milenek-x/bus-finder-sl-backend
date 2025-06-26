@@ -64,14 +64,17 @@ namespace BusFinderBackend.Controllers
             return CreatedAtAction(nameof(GetAdminById), new { id = admin.AdminId }, admin);
         }
 
-        [HttpPut("{id}")]
-        public async Task<ActionResult> UpdateAdmin(string id, [FromBody] Admin admin)
+        [HttpPut("{adminId}")]
+        public async Task<ActionResult> UpdateAdmin(string adminId, [FromBody] Admin admin)
         {
-            var existing = await _adminService.GetAdminByIdAsync(id);
+            // Ensure the password is not included in the update
+            admin.Password = null; // Explicitly set to null or ignore this field
+
+            var existing = await _adminService.GetAdminByIdAsync(adminId);
             if (existing == null)
                 return NotFound();
 
-            await _adminService.UpdateAdminAsync(id, admin);
+            await _adminService.UpdateAdminAsync(adminId, admin);
             return NoContent();
         }
 
@@ -137,6 +140,7 @@ namespace BusFinderBackend.Controllers
                 return StatusCode(500, new { error = "NO_API_KEY", message = "Firebase API key is not configured." });
             }
 
+            // Authenticate the admin using the old password
             var loginResult = await Firebase.FirebaseAuthHelper.LoginWithEmailPasswordAsync(apiKey, request.Email!, request.OldPassword!);
             if (!loginResult.Success)
             {
@@ -147,6 +151,7 @@ namespace BusFinderBackend.Controllers
                 });
             }
 
+            // Update the password
             var updateResult = await Firebase.FirebaseAuthHelper.UpdatePasswordAsync(apiKey, loginResult.IdToken!, request.NewPassword!);
             if (!updateResult.Success)
             {

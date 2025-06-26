@@ -65,11 +65,13 @@ namespace BusFinderBackend.Services
             }
 
             await _staffRepository.AddStaffAsync(staff);
+            await _emailService.SendCredentialsEmailAsync(staff.Email!, staff.Password!, "Staff");
             return (true, null, null);
         }
 
         public Task UpdateStaffAsync(string staffId, Staff staff)
         {
+            // Password is not required, so we can just update the staff details without it.
             return _staffRepository.UpdateStaffAsync(staffId, staff);
         }
 

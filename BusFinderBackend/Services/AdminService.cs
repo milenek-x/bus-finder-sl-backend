@@ -61,6 +61,7 @@ namespace BusFinderBackend.Services
             }
 
             var adminId = await _adminRepository.AddAdminAsync(admin);
+            await _emailService.SendCredentialsEmailAsync(admin.Email!, admin.Password!, "Admin");
             return (true, null, null, adminId);
         }
 

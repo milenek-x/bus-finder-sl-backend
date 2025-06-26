@@ -63,6 +63,9 @@ namespace BusFinderBackend.Controllers
         [HttpPut("{id}")]
         public async Task<ActionResult> UpdateStaff(string id, [FromBody] Staff staff)
         {
+            // Ensure the password is not included in the update
+            staff.Password = null; // Explicitly set to null or ignore this field
+
             var existing = await _staffService.GetStaffByIdAsync(id);
             if (existing == null)
                 return NotFound();
