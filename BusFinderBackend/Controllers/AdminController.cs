@@ -12,6 +12,7 @@ using System.Net.Http.Headers;
 using System;
 using FirebaseAdmin.Auth;
 using Microsoft.Extensions.Logging;
+using System.IO;
 
 namespace BusFinderBackend.Controllers
 {
@@ -215,6 +216,38 @@ namespace BusFinderBackend.Controllers
         {
             public string Email { get; set; } = string.Empty;
             public string NewPassword { get; set; } = string.Empty;
+        }
+
+        [HttpPost("upload-profile-picture")]
+        public async Task<IActionResult> UploadProfilePicture(IFormFile file)
+        {
+            if (file == null || file.Length == 0)
+            {
+                return BadRequest("No file uploaded.");
+            }
+
+            using (var stream = file.OpenReadStream())
+            {
+                var fileName = $"profile_picture_{DateTime.UtcNow.Ticks}.jpg"; // Generate a unique file name
+                var link = await _adminService.UploadProfilePictureAsync(stream, fileName);
+                return Ok(new { link }); // Return the link to the uploaded image
+            }
+        }
+
+        [HttpPost("upload-profile-picture-blob")]
+        public async Task<IActionResult> UploadProfilePictureBlob([FromBody] byte[] blob)
+        {
+            if (blob == null || blob.Length == 0)
+            {
+                return BadRequest("No file uploaded.");
+            }
+
+            using (var stream = new MemoryStream(blob))
+            {
+                var fileName = $"profile_picture_{DateTime.UtcNow.Ticks}.jpg"; // Generate a unique file name
+                var link = await _adminService.UploadProfilePictureAsync(stream, fileName);
+                return Ok(new { link }); // Return the link to the uploaded image
+            }
         }
     }
 }

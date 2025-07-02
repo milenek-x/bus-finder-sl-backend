@@ -7,6 +7,12 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Google.Apis.Drive.v3;
+using Google.Apis.Services;
+using Google.Apis.Auth.OAuth2;
+using System.IO;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Http;
 
 namespace BusFinderBackend.Services
 {
@@ -61,7 +67,7 @@ namespace BusFinderBackend.Services
             }
 
             var adminId = await _adminRepository.AddAdminAsync(admin);
-            await _emailService.SendCredentialsEmailAsync(admin.Email!, admin.Password!, "Admin");
+            await _emailService.SendCredentialsEmailAsync(admin.Email!, admin.Password!, "Admin", admin.FirstName!);
             return (true, null, null, adminId);
         }
 
@@ -74,7 +80,16 @@ namespace BusFinderBackend.Services
         {
             // Get the admin by ID
             var admin = await _adminRepository.GetAdminByIdAsync(adminId);
-            if (admin != null && !string.IsNullOrEmpty(admin.Email))
+            
+            // Check if admin is null
+            if (admin == null)
+            {
+                _logger.LogWarning($"Admin with ID {adminId} not found. No deletion performed.");
+                return; // Exit if admin is not found
+            }
+
+            // Check if email is not null or empty
+            if (!string.IsNullOrEmpty(admin.Email))
             {
                 try
                 {
@@ -89,7 +104,12 @@ namespace BusFinderBackend.Services
                     _logger.LogError(ex, $"Failed to delete admin from Firebase Authentication: {admin.Email}");
                 }
             }
+
+            // Delete the admin from the repository
             await _adminRepository.DeleteAdminAsync(adminId);
+
+            // Send account deletion email
+            await _emailService.SendAccountDeletedEmailAsync(admin.Email!, admin.FirstName ?? "User"); // Default to "User" if FirstName is null
         }
 
         public async Task<string> GeneratePasswordResetLinkAsync(string email)
@@ -105,10 +125,14 @@ namespace BusFinderBackend.Services
                 string link = await FirebaseAuth.DefaultInstance.GeneratePasswordResetLinkAsync(email);
                 string oobCode = ExtractOobCodeFromLink(link);
                 _logger.LogInformation("Generated password reset link for email: {Email}", email);
-                
+
+                // Retrieve the admin's details to get the name
+                var admin = await _adminRepository.GetAdminByIdAsync(email); // Assuming email is used as ID or modify accordingly
+                string recipientName = admin?.FirstName ?? "User"; // Default to "User" if name is not available
+
                 // Send the password reset email
-                await _emailService.SendPasswordResetEmailAsync(email, oobCode);
-                
+                await _emailService.SendPasswordResetEmailAsync(email, oobCode, recipientName);
+
                 return link;
             }
             catch (Exception ex)
@@ -170,6 +194,37 @@ namespace BusFinderBackend.Services
             // Extract the OOB code
             var oobCode = link.Substring(startIndex, endIndex - startIndex);
             return oobCode;
+        }
+
+        public async Task<string> UploadProfilePictureAsync(Stream imageStream, string fileName)
+        {
+            var credential = GoogleCredential.FromFile("path/to/your/credentials.json")
+                .CreateScoped(DriveService.Scope.DriveFile);
+
+            var service = new DriveService(new BaseClientService.Initializer()
+            {
+                HttpClientInitializer = credential,
+                ApplicationName = "Your Application Name",
+            });
+
+            var fileMetadata = new Google.Apis.Drive.v3.Data.File()
+            {
+                Name = fileName,
+                MimeType = "image/jpeg" // Adjust based on the image type
+            };
+
+            FilesResource.CreateMediaUpload request;
+            using (var stream = new MemoryStream())
+            {
+                await imageStream.CopyToAsync(stream);
+                stream.Position = 0; // Reset stream position
+                request = service.Files.Create(fileMetadata, stream, "image/jpeg");
+                request.Fields = "id";
+                await request.UploadAsync();
+            }
+
+            var file = request.ResponseBody;
+            return $"https://drive.google.com/uc?id={file.Id}"; // Return the link
         }
 
     }

@@ -147,6 +147,23 @@
           }
         }
       },
+      "Google.Apis.Drive.v3/1.69.0.3783": {
+        "type": "package",
+        "dependencies": {
+          "Google.Apis": "1.69.0",
+          "Google.Apis.Auth": "1.69.0"
+        },
+        "compile": {
+          "lib/net6.0/Google.Apis.Drive.v3.dll": {
+            "related": ".pdb;.xml"
+          }
+        },
+        "runtime": {
+          "lib/net6.0/Google.Apis.Drive.v3.dll": {
+            "related": ".pdb;.xml"
+          }
+        }
+      },
       "Google.Cloud.Firestore/3.10.0": {
         "type": "package",
         "dependencies": {
@@ -784,6 +801,28 @@
         "lib/netstandard2.0/Google.Apis.Core.dll",
         "lib/netstandard2.0/Google.Apis.Core.pdb",
         "lib/netstandard2.0/Google.Apis.Core.xml"
+      ]
+    },
+    "Google.Apis.Drive.v3/1.69.0.3783": {
+      "sha512": "ey9szbRuGbpX9Cee0gJ4vWPJmYUNrFhUpx3AlOwErE/LOh7rti+gPa+3AVGq1/S9cYsnTxs6iv0sH7UdKrkL3g==",
+      "type": "package",
+      "path": "google.apis.drive.v3/1.69.0.3783",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "LICENSE",
+        "NuGetIcon.png",
+        "google.apis.drive.v3.1.69.0.3783.nupkg.sha512",
+        "google.apis.drive.v3.nuspec",
+        "lib/net462/Google.Apis.Drive.v3.dll",
+        "lib/net462/Google.Apis.Drive.v3.pdb",
+        "lib/net462/Google.Apis.Drive.v3.xml",
+        "lib/net6.0/Google.Apis.Drive.v3.dll",
+        "lib/net6.0/Google.Apis.Drive.v3.pdb",
+        "lib/net6.0/Google.Apis.Drive.v3.xml",
+        "lib/netstandard2.0/Google.Apis.Drive.v3.dll",
+        "lib/netstandard2.0/Google.Apis.Drive.v3.pdb",
+        "lib/netstandard2.0/Google.Apis.Drive.v3.xml"
       ]
     },
     "Google.Cloud.Firestore/3.10.0": {
@@ -1440,6 +1479,7 @@
     "net8.0": [
       "FirebaseAdmin >= 3.2.0",
       "Google.Apis.Auth >= 1.70.0",
+      "Google.Apis.Drive.v3 >= 1.69.0.3783",
       "Google.Cloud.Firestore >= 3.10.0",
       "Microsoft.AspNetCore.OpenApi >= 8.0.5",
       "Swashbuckle.AspNetCore >= 9.0.1"
@@ -1503,6 +1543,10 @@
           "Google.Apis.Auth": {
             "target": "Package",
             "version": "[1.70.0, )"
+          },
+          "Google.Apis.Drive.v3": {
+            "target": "Package",
+            "version": "[1.69.0.3783, )"
           },
           "Google.Cloud.Firestore": {
             "target": "Package",
