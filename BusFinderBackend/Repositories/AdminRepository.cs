@@ -83,5 +83,17 @@ namespace BusFinderBackend.Repositories
             int nextNumber = maxNumber + 1;
             return $"admin{nextNumber.ToString("D3")}";
         }
+
+        public async Task<Admin?> GetAdminByEmailAsync(string email)
+        {
+            var snapshot = await _adminsCollection.WhereEqualTo("Email", email).GetSnapshotAsync();
+            if (snapshot.Documents.Count > 0)
+            {
+                var admin = snapshot.Documents[0].ConvertTo<Admin>();
+                admin.AdminId = snapshot.Documents[0].Id;
+                return admin;
+            }
+            return null;
+        }
     }
 }

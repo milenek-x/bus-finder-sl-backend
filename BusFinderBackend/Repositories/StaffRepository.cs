@@ -84,5 +84,17 @@ namespace BusFinderBackend.Repositories
         {
             await _staffCollection.Document(staffId).DeleteAsync();
         }
+
+        public async Task<Staff?> GetStaffByEmailAsync(string email)
+        {
+            var snapshot = await _staffCollection.WhereEqualTo("Email", email).GetSnapshotAsync();
+            if (snapshot.Documents.Count > 0)
+            {
+                var staff = snapshot.Documents[0].ConvertTo<Staff>();
+                staff.StaffId = snapshot.Documents[0].Id; // Set the StaffId
+                return staff;
+            }
+            return null; // Return null if no staff found
+        }
     }
 }

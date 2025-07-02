@@ -121,18 +121,18 @@ namespace BusFinderBackend.Services
 
             try
             {
-                // Generate the password reset link for the admin
+                // Generate the password reset link
                 string link = await FirebaseAuth.DefaultInstance.GeneratePasswordResetLinkAsync(email);
                 string oobCode = ExtractOobCodeFromLink(link);
                 _logger.LogInformation("Generated password reset link for email: {Email}", email);
-
+                
                 // Retrieve the admin's details to get the name
-                var admin = await _adminRepository.GetAdminByIdAsync(email); // Assuming email is used as ID or modify accordingly
+                var admin = await _adminRepository.GetAdminByEmailAsync(email); // Use the new method
                 string recipientName = admin?.FirstName ?? "User"; // Default to "User" if name is not available
 
                 // Send the password reset email
                 await _emailService.SendPasswordResetEmailAsync(email, oobCode, recipientName);
-
+                
                 return link;
             }
             catch (Exception ex)

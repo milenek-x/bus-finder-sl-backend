@@ -65,7 +65,7 @@ namespace BusFinderBackend.Services
             }
 
             await _staffRepository.AddStaffAsync(staff);
-            await _emailService.SendCredentialsEmailAsync(staff.Email!, staff.Password!, "Staff");
+            await _emailService.SendCredentialsEmailAsync(staff.Email!, staff.Password!, "Staff", staff.FirstName!);
             return (true, null, null);
         }
 
@@ -142,9 +142,13 @@ namespace BusFinderBackend.Services
                 string link = await FirebaseAuth.DefaultInstance.GeneratePasswordResetLinkAsync(email);
                 string oobCode = ExtractOobCodeFromLink(link);
                 _logger.LogInformation("Generated password reset link for email: {Email}", email);
+
+                // Retrieve the admin's details to get the name
+                var staff = await _staffRepository.GetStaffByEmailAsync(email); // Assuming email is used as ID or modify accordingly
+                string recipientName = staff?.FirstName ?? "User"; // Default to "User" if name is not available
                 
                 // Send the password reset email
-                await _emailService.SendPasswordResetEmailAsync(email, oobCode);
+                await _emailService.SendPasswordResetEmailAsync(email, oobCode, recipientName);
                 
                 return link;
             }
