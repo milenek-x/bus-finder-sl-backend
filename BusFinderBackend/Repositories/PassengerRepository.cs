@@ -125,5 +125,17 @@ namespace BusFinderBackend.Repositories
             int nextNumber = maxNumber + 1;
             return $"passenger{nextNumber:D5}"; // Example format: passenger00001
         }
+
+        public async Task<Passenger?> GetPassengerByEmailAsync(string email)
+        {
+            var snapshot = await _passengersCollection.WhereEqualTo("Email", email).GetSnapshotAsync();
+            if (snapshot.Documents.Count > 0)
+            {
+                var passenger = snapshot.Documents[0].ConvertTo<Passenger>();
+                passenger.PassengerId = snapshot.Documents[0].Id; // Set the PassengerId
+                return passenger;
+            }
+            return null; // Return null if no passenger found
+        }
     }
 } 
