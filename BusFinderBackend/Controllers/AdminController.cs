@@ -141,7 +141,7 @@ namespace BusFinderBackend.Controllers
                 return StatusCode(500, new { error = "NO_API_KEY", message = "Firebase API key is not configured." });
             }
 
-            // Authenticate the admin using the old password
+            // Authenticate the admin user using the old password
             var loginResult = await Firebase.FirebaseAuthHelper.LoginWithEmailPasswordAsync(apiKey, request.Email!, request.OldPassword!);
             if (!loginResult.Success)
             {
