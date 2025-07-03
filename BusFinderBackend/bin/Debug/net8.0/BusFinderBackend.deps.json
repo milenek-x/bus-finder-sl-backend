@@ -10,6 +10,7 @@
         "dependencies": {
           "FirebaseAdmin": "3.2.0",
           "Google.Apis.Auth": "1.70.0",
+          "Google.Apis.Drive.v3": "1.69.0.3783",
           "Google.Cloud.Firestore": "3.10.0",
           "Microsoft.AspNetCore.OpenApi": "8.0.5",
           "Swashbuckle.AspNetCore": "9.0.1"
@@ -117,6 +118,18 @@
           "lib/net6.0/Google.Apis.Core.dll": {
             "assemblyVersion": "1.70.0.0",
             "fileVersion": "1.70.0.0"
+          }
+        }
+      },
+      "Google.Apis.Drive.v3/1.69.0.3783": {
+        "dependencies": {
+          "Google.Apis": "1.70.0",
+          "Google.Apis.Auth": "1.70.0"
+        },
+        "runtime": {
+          "lib/net6.0/Google.Apis.Drive.v3.dll": {
+            "assemblyVersion": "1.69.0.3783",
+            "fileVersion": "1.69.0.3783"
           }
         }
       },
@@ -403,6 +416,13 @@
       "sha512": "sha512-R7Mbea2iB/TN+3BA1LPCqb1eT2HxnILJ+ASl5pdhHHc8uSe95JTTnM2DEVbVBQ3vo9/FpbBxWBRjP1ed9QK9CQ==",
       "path": "google.apis.core/1.70.0",
       "hashPath": "google.apis.core.1.70.0.nupkg.sha512"
+    },
+    "Google.Apis.Drive.v3/1.69.0.3783": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-ey9szbRuGbpX9Cee0gJ4vWPJmYUNrFhUpx3AlOwErE/LOh7rti+gPa+3AVGq1/S9cYsnTxs6iv0sH7UdKrkL3g==",
+      "path": "google.apis.drive.v3/1.69.0.3783",
+      "hashPath": "google.apis.drive.v3.1.69.0.3783.nupkg.sha512"
     },
     "Google.Cloud.Firestore/3.10.0": {
       "type": "package",

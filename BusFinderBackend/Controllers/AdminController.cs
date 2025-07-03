@@ -226,11 +226,19 @@ namespace BusFinderBackend.Controllers
                 return BadRequest("No file uploaded.");
             }
 
-            using (var stream = file.OpenReadStream())
+            try
             {
-                var fileName = $"profile_picture_{DateTime.UtcNow.Ticks}.jpg"; // Generate a unique file name
-                var link = await _adminService.UploadProfilePictureAsync(stream, fileName);
-                return Ok(new { link }); // Return the link to the uploaded image
+                using (var stream = file.OpenReadStream())
+                {
+                    var fileName = $"profile_picture_{DateTime.UtcNow.Ticks}.jpg"; // Generate a unique file name
+                    var link = await _adminService.UploadProfilePictureAsync(stream, fileName);
+                    return Ok(new { link }); // Return the link to the uploaded image
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error uploading profile picture.");
+                return StatusCode(500, new { error = "Failed to upload profile picture.", message = ex.Message });
             }
         }
 
