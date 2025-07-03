@@ -257,5 +257,54 @@ namespace BusFinderBackend.Controllers
                 return Ok(new { link }); // Return the link to the uploaded image
             }
         }
+
+        [HttpPost("add-with-picture")]
+        public async Task<IActionResult> AddAdminWithPicture([FromBody] Admin admin)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(admin.ProfilePicture) || !System.IO.File.Exists(admin.ProfilePicture))
+                {
+                    return BadRequest(new
+                    {
+                        error = "INVALID_FILE_PATH",
+                        message = "The profile picture path is invalid or the file does not exist."
+                    });
+                }
+
+                // Open and upload profile picture
+                await using var imageStream = System.IO.File.OpenRead(admin.ProfilePicture);
+                var fileName = $"profile_picture_{DateTime.UtcNow.Ticks}.jpg";
+                var profilePictureUrl = await _adminService.UploadProfilePictureAsync(imageStream, fileName);
+
+                // Replace local path with hosted URL
+                admin.ProfilePicture = profilePictureUrl;
+
+                var result = await _adminService.AddAdminAsync(admin);
+
+                if (!result.Success)
+                {
+                    return BadRequest(new
+                    {
+                        error = result.ErrorCode,
+                        message = result.ErrorMessage
+                    });
+                }
+
+                admin.AdminId = result.AdminId;
+                return CreatedAtAction(nameof(AddAdmin), new { id = admin.AdminId }, admin);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error while registering admin with profile picture.");
+                return StatusCode(500, new
+                {
+                    error = "INTERNAL_ERROR",
+                    message = ex.Message
+                });
+            }
+        }
+
+
     }
 }
