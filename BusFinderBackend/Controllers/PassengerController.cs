@@ -203,6 +203,22 @@ namespace BusFinderBackend.Controllers
             return Ok(new { message = "Location updated." });
         }
 
+        [HttpPost("verify-oob-code")]
+        public async Task<IActionResult> VerifyOobCode([FromBody] VerifyOobCodeRequest request)
+        {
+            if (string.IsNullOrEmpty(request.Email) || string.IsNullOrEmpty(request.OobCode))
+            {
+                return BadRequest(new { error = "Email and oobCode are required." });
+            }
+
+            bool isValid = await _passengerService.VerifyOobCodeAsync(request.Email, request.OobCode);
+            if (isValid)
+            {
+                return Ok(new { message = "OobCode is valid." });
+            }
+            return BadRequest(new { error = "Invalid or expired oobCode." });
+        }
+
         public class LoginRequest
         {
             public string Email { get; set; } = string.Empty;
@@ -246,6 +262,12 @@ namespace BusFinderBackend.Controllers
         public class FavoritePlaceRequest
         {
             public string PlaceId { get; set; } = string.Empty; // Accept placeId as a string
+        }
+
+        public class VerifyOobCodeRequest
+        {
+            public string Email { get; set; } = string.Empty;
+            public string OobCode { get; set; } = string.Empty;
         }
     }
 } 

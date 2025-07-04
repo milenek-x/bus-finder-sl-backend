@@ -150,6 +150,9 @@ namespace BusFinderBackend.Services
                 string link = await FirebaseAuth.DefaultInstance.GeneratePasswordResetLinkAsync(email);
                 string oobCode = ExtractOobCodeFromLink(link);
 
+                // Store the oobCode in Firestore
+                await _passengerRepository.StoreOobCodeAsync(email, oobCode);
+
                 // Retrieve the admin's details to get the name
                 var passenger = await _passengerRepository.GetPassengerByEmailAsync(email); // Use the new method
                 string recipientName = passenger?.FirstName ?? "User"; // Default to "User" if name is not available
@@ -161,6 +164,21 @@ namespace BusFinderBackend.Services
             {
                 throw new InvalidOperationException("Failed to generate password reset link.", ex);
             }
+        }
+
+        public async Task<bool> VerifyOobCodeAsync(string email, string oobCode)
+        {
+            // Retrieve the stored oobCode for the given email
+            string? storedOobCode = await _passengerRepository.RetrieveOobCodeAsync(email);
+
+            // Compare the provided oobCode with the stored one
+            if (storedOobCode == oobCode)
+            {
+                // If valid, delete the oobCode from Firestore
+                await _passengerRepository.DeleteOobCodeAsync(email);
+                return true;
+            }
+            return false;
         }
 
         public async Task<bool> ResetPasswordAsync(string email, string newPassword)
@@ -283,6 +301,19 @@ namespace BusFinderBackend.Services
                 passenger.CurrentLocationLongitude = longitude;
                 await _passengerRepository.UpdatePassengerAsync(passengerId, passenger);
             }
+        }
+
+        private void StoreOobCode(string email, string oobCode)
+        {
+            // Implement logic to store the oobCode associated with the email
+            // This could be in-memory storage, a database, or any other temporary storage
+        }
+
+        private string RetrieveOobCode(string email)
+        {
+            // Implement logic to retrieve the stored oobCode for the given email
+            // This could be in-memory storage, a database, or any other temporary storage
+            throw new NotImplementedException();
         }
     }
 } 

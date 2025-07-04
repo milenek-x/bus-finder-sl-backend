@@ -10,12 +10,14 @@ namespace BusFinderBackend.Repositories
         private readonly CollectionReference _passengersCollection;
         private readonly CollectionReference _busRoutesCollection;
         private readonly CollectionReference _placesCollection;
+        private readonly CollectionReference _passwordResetCodesCollection;
 
         public PassengerRepository(FirestoreDb firestoreDb)
         {
             _passengersCollection = firestoreDb.Collection("testPassengers");
             _busRoutesCollection = firestoreDb.Collection("testBusRoutes");
             _placesCollection = firestoreDb.Collection("testPlaces");
+            _passwordResetCodesCollection = firestoreDb.Collection("testPasswordResetCodes");
         }
 
         public async Task<List<Passenger>> GetAllPassengersAsync()
@@ -136,6 +138,37 @@ namespace BusFinderBackend.Repositories
                 return passenger;
             }
             return null; // Return null if no passenger found
+        }
+
+        public async Task StoreOobCodeAsync(string email, string oobCode)
+        {
+            var resetCodeDocument = _passwordResetCodesCollection.Document(email);
+            var data = new
+            {
+                OobCode = oobCode,
+                Expiration = DateTime.UtcNow.AddHours(1) // Set expiration time (e.g., 1 hour)
+            };
+            await resetCodeDocument.SetAsync(data);
+        }
+
+        public async Task<string?> RetrieveOobCodeAsync(string email)
+        {
+            var document = await _passwordResetCodesCollection.Document(email).GetSnapshotAsync();
+            if (document.Exists)
+            {
+                var data = document.ToDictionary();
+                // Check if the code is expired
+                if (data.ContainsKey("Expiration") && DateTime.UtcNow < ((Timestamp)data["Expiration"]).ToDateTime())
+                {
+                    return data["OobCode"].ToString();
+                }
+            }
+            return null; // Return null if no valid oobCode found
+        }
+
+        public async Task DeleteOobCodeAsync(string email)
+        {
+            await _passwordResetCodesCollection.Document(email).DeleteAsync();
         }
     }
 } 
