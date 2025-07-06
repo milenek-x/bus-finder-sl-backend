@@ -305,5 +305,20 @@ namespace BusFinderBackend.Services
             await request.DownloadAsync(stream);
             return stream.ToArray(); // Return the image as a byte array
         }
+
+        public async Task<bool> VerifyOobCodeAsync(string email, string oobCode)
+        {
+            // Retrieve the stored oobCode for the given email
+            string? storedOobCode = await _adminRepository.RetrieveOobCodeAsync(email);
+
+            // Compare the provided oobCode with the stored one
+            if (storedOobCode == oobCode)
+            {
+                // If valid, delete the oobCode from Firestore
+                await _adminRepository.DeleteOobCodeAsync(email);
+                return true;
+            }
+            return false;
+        }
     }
 }

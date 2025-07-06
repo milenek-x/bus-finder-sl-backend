@@ -9,11 +9,13 @@ namespace BusFinderBackend.Repositories
     public class AdminRepository
     {
         private readonly CollectionReference _adminsCollection;
+        private readonly CollectionReference _passwordResetCodesCollection;
         private readonly FirestoreDb _firestoreDb;
 
         public AdminRepository(FirestoreDb firestoreDb)
         {
             _adminsCollection = firestoreDb.Collection("testAdmins");
+            _passwordResetCodesCollection = firestoreDb.Collection("testPasswordResetCodes");
             _firestoreDb = firestoreDb;
         }
 
@@ -94,6 +96,26 @@ namespace BusFinderBackend.Repositories
                 return admin;
             }
             return null;
+        }
+
+        public async Task<string?> RetrieveOobCodeAsync(string email)
+        {
+            var document = await _passwordResetCodesCollection.Document(email).GetSnapshotAsync();
+            if (document.Exists)
+            {
+                var data = document.ToDictionary();
+                // Check if the code is expired
+                if (data.ContainsKey("Expiration") && DateTime.UtcNow < ((Timestamp)data["Expiration"]).ToDateTime())
+                {
+                    return data["OobCode"].ToString();
+                }
+            }
+            return null; // Return null if no valid oobCode found
+        }
+
+        public async Task DeleteOobCodeAsync(string email)
+        {
+            await _passwordResetCodesCollection.Document(email).DeleteAsync();
         }
     }
 }
