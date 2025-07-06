@@ -21,6 +21,9 @@ namespace BusFinderBackend.Model
         public string? NIC { get; set; }
 
         [FirestoreProperty]
+        public string? StaffRole { get; set; }
+
+        [FirestoreProperty]
         public string? TelNo { get; set; }
 
         [FirestoreProperty]

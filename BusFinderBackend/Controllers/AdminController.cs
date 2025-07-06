@@ -325,6 +325,38 @@ namespace BusFinderBackend.Controllers
             }
         }
 
+        [HttpPut("{adminId}/update-profile-picture")]
+        public async Task<IActionResult> UpdateProfilePicture(string adminId, [FromBody] byte[] blob)
+        {
+            if (blob == null || blob.Length == 0)
+            {
+                return BadRequest("No file uploaded.");
+            }
 
+            var admin = await _adminService.GetAdminByIdAsync(adminId);
+            if (admin == null)
+            {
+                return NotFound(new { error = "Admin not found." });
+            }
+
+            try
+            {
+                using (var stream = new MemoryStream(blob))
+                {
+                    var fileName = $"profile_picture_{DateTime.UtcNow.Ticks}.jpg"; // Generate a unique file name
+                    var profilePictureUrl = await _adminService.UploadProfilePictureAsync(stream, fileName);
+
+                    // Update the admin's profile picture URL
+                    admin.ProfilePicture = profilePictureUrl;
+                    await _adminService.UpdateAdminAsync(adminId, admin); // Ensure to update the admin record
+
+                    return Ok(new { link = profilePictureUrl }); // Return the link to the uploaded image
+                }
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { error = "Failed to update profile picture.", message = ex.Message });
+            }
+        }
     }
 }
