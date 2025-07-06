@@ -326,9 +326,9 @@ namespace BusFinderBackend.Controllers
         }
 
         [HttpPut("update-profile-picture/{adminId}")]
-        public async Task<IActionResult> UpdateProfilePicture(string adminId, [FromBody] byte[] blob)
+        public async Task<IActionResult> UpdateProfilePicture(string adminId, IFormFile file)
         {
-            if (blob == null || blob.Length == 0)
+            if (file == null || file.Length == 0)
             {
                 return BadRequest("No file uploaded.");
             }
@@ -341,8 +341,11 @@ namespace BusFinderBackend.Controllers
 
             try
             {
-                using (var stream = new MemoryStream(blob))
+                using (var stream = new MemoryStream())
                 {
+                    await file.CopyToAsync(stream); // Copy the uploaded file to the memory stream
+                    stream.Position = 0; // Reset the stream position to the beginning
+
                     var fileName = $"profile_picture_{DateTime.UtcNow.Ticks}.jpg"; // Generate a unique file name
                     var profilePictureUrl = await _adminService.UploadProfilePictureAsync(stream, fileName);
 
