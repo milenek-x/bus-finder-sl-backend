@@ -110,22 +110,28 @@ namespace BusFinderBackend.Repositories
             var snapshot = await _passengersCollection.GetSnapshotAsync();
             int maxNumber = 0;
 
+            
             foreach (var doc in snapshot.Documents)
             {
                 var id = doc.Id; // Assuming the ID is the PassengerId
+            
                 if (id.StartsWith("passenger"))
                 {
-                    var numberPart = id.Substring(8); // Extract the number part
+                    var numberPart = id.Substring(9); // Extract the number part
                     if (int.TryParse(numberPart, out int n))
                     {
                         if (n > maxNumber)
+                        {
                             maxNumber = n;
+                        }
                     }
                 }
             }
 
             int nextNumber = maxNumber + 1;
-            return $"passenger{nextNumber:D5}"; // Example format: passenger00001
+            var newPassengerId = $"passenger{nextNumber:D5}"; // Example format: passenger00001
+            Console.WriteLine($"Generated new Passenger ID: {newPassengerId}"); // Log the new ID
+            return newPassengerId;
         }
 
         public async Task<Passenger?> GetPassengerByEmailAsync(string email)
