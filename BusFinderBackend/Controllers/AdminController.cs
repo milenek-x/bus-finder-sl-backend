@@ -325,7 +325,7 @@ namespace BusFinderBackend.Controllers
             }
         }
 
-        [HttpPut("{adminId}/update-profile-picture")]
+        [HttpPut("update-profile-picture/{adminId}")]
         public async Task<IActionResult> UpdateProfilePicture(string adminId, [FromBody] byte[] blob)
         {
             if (blob == null || blob.Length == 0)
