@@ -261,5 +261,49 @@ namespace BusFinderBackend.Services
 
             return $"https://drive.google.com/uc?id={uploadedFile.Id}";
         }
+
+        public async Task<byte[]> GetProfilePictureAsync(string profilePictureUrl)
+        {
+            if (string.IsNullOrEmpty(profilePictureUrl))
+            {
+                throw new ArgumentException("Profile picture URL cannot be null or empty.", nameof(profilePictureUrl));
+            }
+
+            // Extract the file ID from the URL
+            var fileId = profilePictureUrl.Split('=')[1];
+
+            // Create a Google Drive service instance
+            var serviceAccountEmail = _configuration["GoogleDrive:ClientEmail"];
+            var rawPrivateKey = _configuration["GoogleDrive:PrivateKey"];
+            var privateKey = rawPrivateKey?.Replace("\\n", "\n");
+
+            var credentialJson = $@"{{
+                ""type"": ""service_account"",
+                ""project_id"": ""{_configuration["GoogleDrive:ProjectId"]}"",
+                ""private_key_id"": ""{_configuration["GoogleDrive:PrivateKeyId"]}"",
+                ""private_key"": ""{privateKey}"",
+                ""client_email"": ""{serviceAccountEmail}"",
+                ""client_id"": ""{_configuration["GoogleDrive:ClientId"]}"",
+                ""auth_uri"": ""https://accounts.google.com/o/oauth2/auth"",
+                ""token_uri"": ""https://oauth2.googleapis.com/token"",
+                ""auth_provider_x509_cert_url"": ""https://www.googleapis.com/oauth2/v1/certs"",
+                ""client_x509_cert_url"": ""{_configuration["GoogleDrive:ClientCertUrl"]}""
+            }}";
+
+            var credential = GoogleCredential.FromJson(credentialJson)
+                .CreateScoped(DriveService.Scope.Drive);
+
+            var service = new DriveService(new BaseClientService.Initializer
+            {
+                HttpClientInitializer = credential,
+                ApplicationName = "YourAppName"
+            });
+
+            // Fetch the file from Google Drive
+            var request = service.Files.Get(fileId);
+            var stream = new MemoryStream();
+            await request.DownloadAsync(stream);
+            return stream.ToArray(); // Return the image as a byte array
+        }
     }
 }

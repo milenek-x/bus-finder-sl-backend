@@ -305,6 +305,26 @@ namespace BusFinderBackend.Controllers
             }
         }
 
+        [HttpGet("profile-picture/{adminId}")]
+        public async Task<IActionResult> GetProfilePicture(string adminId)
+        {
+            var admin = await _adminService.GetAdminByIdAsync(adminId);
+            if (admin == null || string.IsNullOrEmpty(admin.ProfilePicture))
+            {
+                return NotFound(new { error = "Admin not found or profile picture not set." });
+            }
+
+            try
+            {
+                var imageBytes = await _adminService.GetProfilePictureAsync(admin.ProfilePicture);
+                return File(imageBytes, "image/jpeg"); // Return the image as a file response
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { error = "Failed to retrieve profile picture.", message = ex.Message });
+            }
+        }
+
 
     }
 }
