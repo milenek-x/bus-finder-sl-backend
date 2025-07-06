@@ -24,9 +24,9 @@ namespace BusFinderBackend.Model
         public string? BusRouteNumber { get; set; } = null;
 
         [FirestoreProperty]
-        public double CurrentLocationLatitude { get; set; } = 0.0; // Default to 0.0
+        public double? CurrentLocationLatitude { get; set; }
 
         [FirestoreProperty]
-        public double CurrentLocationLongitude { get; set; } = 0.0; // Default to 0.0
+        public double? CurrentLocationLongitude { get; set; }
     }
 }

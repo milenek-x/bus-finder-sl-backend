@@ -3,6 +3,7 @@ using BusFinderBackend.Services;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using System;
 
 namespace BusFinderBackend.Controllers
 {
@@ -74,6 +75,24 @@ namespace BusFinderBackend.Controllers
         {
             await _busService.DeleteBusAsync(numberPlate);
             return NoContent();
+        }
+
+        [HttpPut("{numberPlate}/update-location-if-needed")]
+        public async Task<IActionResult> UpdateLocationIfNeeded(string numberPlate)
+        {
+            try
+            {
+                await _busService.UpdateBusLocationIfNeededAsync(numberPlate);
+                return NoContent(); // Return 204 No Content if successful
+            }
+            catch (ArgumentException ex)
+            {
+                return NotFound(new { error = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { error = "Failed to update location.", message = ex.Message });
+            }
         }
     }
 

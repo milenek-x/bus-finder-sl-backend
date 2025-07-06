@@ -69,14 +69,15 @@ namespace BusFinderBackend.Repositories
             });
         }
 
-        public async Task UpdateCurrentLocationAsync(string numberPlate, double latitude, double longitude)
+        public async Task UpdateCurrentLocationAsync(string numberPlate, double? latitude, double? longitude)
         {
-            var document = _busesCollection.Document(numberPlate);
-            await document.UpdateAsync(new Dictionary<string, object>
-            {
-                { "CurrentLocationLatitude", latitude },
-                { "CurrentLocationLongitude", longitude }
-            });
+            var busDoc = _busesCollection.Document(numberPlate);
+            var updates = new Dictionary<string, object>();
+
+            updates["CurrentLocationLatitude"] = latitude ?? 0; // Set to 0 if latitude is null
+            updates["CurrentLocationLongitude"] = longitude ?? 0; // Set to 0 if longitude is null
+
+            await busDoc.UpdateAsync(updates);
         }
 
         public async Task<BusRoute?> GetBusRouteByNumberAsync(string routeNumber)
