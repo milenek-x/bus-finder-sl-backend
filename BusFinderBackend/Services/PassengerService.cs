@@ -292,13 +292,13 @@ namespace BusFinderBackend.Services
             await _passengerRepository.RemoveFavoritePlaceAsync(passengerId, placeId);
         }
 
-        public async Task UpdateLocationAsync(string passengerId, double latitude, double longitude)
+        public async Task UpdateLocationAsync(string passengerId, double? latitude, double? longitude)
         {
             var passenger = await _passengerRepository.GetPassengerByIdAsync(passengerId);
             if (passenger != null)
             {
-                passenger.CurrentLocationLatitude = latitude;
-                passenger.CurrentLocationLongitude = longitude;
+                passenger.CurrentLocationLatitude = latitude ?? 0;
+                passenger.CurrentLocationLongitude = longitude ?? 0;
                 await _passengerRepository.UpdatePassengerAsync(passengerId, passenger);
             }
         }

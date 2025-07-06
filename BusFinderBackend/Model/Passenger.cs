@@ -1,4 +1,5 @@
 using Google.Cloud.Firestore;
+using System.Text.Json.Serialization;
 
 namespace BusFinderBackend.Model
 {
@@ -30,9 +31,11 @@ namespace BusFinderBackend.Model
         public List<string>? FavoritePlaces { get; set; } // List of favorite place names or IDs
 
         [FirestoreProperty]
-        public double CurrentLocationLatitude { get; set; }
+        [JsonPropertyName("CurrentLocationLatitude")]
+        public double? CurrentLocationLatitude { get; set; }
 
         [FirestoreProperty]
-        public double CurrentLocationLongitude { get; set; }
+        [JsonPropertyName("CurrentLocationLongitude")]
+        public double? CurrentLocationLongitude { get; set; }
     }
 } 

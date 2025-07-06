@@ -176,5 +176,15 @@ namespace BusFinderBackend.Repositories
         {
             await _passwordResetCodesCollection.Document(email).DeleteAsync();
         }
+
+        public async Task UpdateCurrentLocationAsync(string passengerId, double? latitude, double? longitude)
+        {
+            var document = _passengersCollection.Document(passengerId);
+            await document.UpdateAsync(new Dictionary<string, object>
+            {
+                { "CurrentLocationLatitude", latitude ?? 0 }, // Default to 0 if null
+                { "CurrentLocationLongitude", longitude ?? 0 } // Default to 0 if null
+            });
+        }
     }
 } 

@@ -134,6 +134,9 @@ namespace BusFinderBackend.Services
                 var admin = await _adminRepository.GetAdminByEmailAsync(email); // Use the new method
                 string recipientName = admin?.FirstName ?? "User"; // Default to "User" if name is not available
 
+                // Store the oobCode in Firestore
+                await _adminRepository.StoreOobCodeAsync(email, oobCode);
+
                 // Send the password reset email
                 await _emailService.SendPasswordResetEmailAsync(email, oobCode, recipientName);
                 

@@ -117,5 +117,16 @@ namespace BusFinderBackend.Repositories
         {
             await _passwordResetCodesCollection.Document(email).DeleteAsync();
         }
+
+        public async Task StoreOobCodeAsync(string email, string oobCode)
+        {
+            var resetCodeDocument = _passwordResetCodesCollection.Document(email);
+            var data = new
+            {
+                OobCode = oobCode,
+                Expiration = DateTime.UtcNow.AddHours(1) // Set expiration time (e.g., 1 hour)
+            };
+            await resetCodeDocument.SetAsync(data);
+        }
     }
 }

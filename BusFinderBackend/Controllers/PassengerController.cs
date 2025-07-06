@@ -250,8 +250,8 @@ namespace BusFinderBackend.Controllers
 
         public class LocationUpdateRequest
         {
-            public double CurrentLocationLatitude { get; set; }
-            public double CurrentLocationLongitude { get; set; }
+            public double? CurrentLocationLatitude { get; set; }
+            public double? CurrentLocationLongitude { get; set; }
         }
 
         public class FavoriteRouteRequest
