@@ -39,7 +39,7 @@ namespace BusFinderBackend.Services
             return await _passengerRepository.GetPassengerByIdAsync(passengerId);
         }
 
-        public async Task<(bool Success, string? ErrorCode, string? ErrorMessage)> AddPassengerAsync(Passenger passenger)
+        public async Task<(bool Success, string? ErrorCode, string? ErrorMessage, string? passengerId)> AddPassengerAsync(Passenger passenger)
         {
             if (string.IsNullOrEmpty(passenger.PassengerId))
             {
@@ -49,29 +49,27 @@ namespace BusFinderBackend.Services
             // Check for null or empty values
             if (string.IsNullOrEmpty(passenger.Email) || string.IsNullOrEmpty(passenger.Password))
             {
-                return (false, "INVALID_INPUT", "Email and password must be provided.");
+                return (false, "INVALID_INPUT", "Email and password must be provided.", null);
             }
 
             var firebaseSection = _configuration.GetSection("Firebase");
             var apiKey = firebaseSection["ApiKey"];
             if (string.IsNullOrEmpty(apiKey))
             {
-                return (false, "NO_API_KEY", "Firebase API key is not configured.");
+                return (false, "NO_API_KEY", "Firebase API key is not configured.", null);
             }
 
             var firebaseResult = await Firebase.FirebaseAuthHelper.CreateUserAsync(apiKey, passenger.Email, passenger.Password);
 
             if (!firebaseResult.Success)
             {
-                return (false, firebaseResult.ErrorCode, firebaseResult.ErrorMessage);
+                return (false, firebaseResult.ErrorCode, firebaseResult.ErrorMessage, null);
             }
 
             // Add the passenger to the repository
             await _passengerRepository.AddPassengerAsync(passenger);
 
-            // Send credentials email after successful addition
-            await _emailService.SendCredentialsEmailAsync(passenger.Email!, passenger.Password!, "Passenger", passenger.FirstName!);
-            return (true, null, null);
+            return (true, null, null, passenger.PassengerId);
         }
 
         public async Task UpdatePassengerAsync(string passengerId, Passenger passenger)

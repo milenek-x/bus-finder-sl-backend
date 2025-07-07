@@ -5,6 +5,8 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Microsoft.AspNetCore.Http;
+using System.IO;
 
 namespace BusFinderBackend.Controllers
 {
@@ -67,8 +69,6 @@ namespace BusFinderBackend.Controllers
         public async Task<ActionResult> UpdateStaff(string id, [FromBody] Staff staff)
         {
             // Ensure the password is not included in the update
-            staff.Password = null; // Explicitly set to null or ignore this field
-
             var existing = await _staffService.GetStaffByIdAsync(id);
             if (existing == null)
                 return NotFound();
@@ -86,6 +86,13 @@ namespace BusFinderBackend.Controllers
 
             await _staffService.DeleteStaffAsync(id);
             return NoContent();
+        }
+
+        [HttpGet("role/{role}")]
+        public async Task<ActionResult<List<Staff>>> GetStaffByRole(string role)
+        {
+            var staffList = await _staffService.GetStaffByRoleAsync(role);
+            return Ok(staffList);
         }
 
         public class StaffLoginRequest
@@ -188,6 +195,67 @@ namespace BusFinderBackend.Controllers
         {
             public string? Email { get; set; }
             public string? OobCode { get; set; }
+        }
+
+        [HttpPost("upload-profile-picture")]
+        public async Task<IActionResult> UploadProfilePicture(IFormFile file)
+        {
+            if (file == null || file.Length == 0)
+            {
+                return BadRequest("No file uploaded.");
+            }
+
+            try
+            {
+                using (var stream = file.OpenReadStream())
+                {
+                    var fileName = $"profile_picture_{DateTime.UtcNow.Ticks}.jpg";
+                    var link = await _staffService.UploadProfilePictureAsync(stream, fileName);
+                    return Ok(new { link });
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error uploading profile picture.");
+                return StatusCode(500, new { error = "Failed to upload profile picture.", message = ex.Message });
+            }
+        }
+
+        [HttpGet("{staffId}/profile-picture")]
+        public async Task<IActionResult> GetProfilePicture(string staffId)
+        {
+            var link = await _staffService.GetProfilePictureAsync(staffId);
+            if (string.IsNullOrEmpty(link))
+            {
+                return NotFound(new { error = "Profile picture not found." });
+            }
+            return Ok(new { link });
+        }
+
+        [HttpPut("{staffId}/update-profile-picture")]
+        public async Task<IActionResult> UpdateProfilePicture(string staffId, IFormFile file)
+        {
+            if (file == null || file.Length == 0)
+            {
+                return BadRequest("No file uploaded.");
+            }
+
+            try
+            {
+                using (var stream = new MemoryStream())
+                {
+                    await file.CopyToAsync(stream);
+                    stream.Position = 0;
+                    var fileName = $"profile_picture_{staffId}_{DateTime.UtcNow.Ticks}.jpg";
+                    var link = await _staffService.UpdateProfilePictureAsync(staffId, stream, fileName);
+                    return Ok(new { link });
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating profile picture for staff {StaffId}.", staffId);
+                return StatusCode(500, new { error = "Failed to update profile picture.", message = ex.Message });
+            }
         }
     }
 }

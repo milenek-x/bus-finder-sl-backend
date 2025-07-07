@@ -59,7 +59,13 @@ namespace BusFinderBackend.Services
                 admin.AdminId = await _adminRepository.GenerateNextAdminIdAsync();
             }
 
-            var result = await FirebaseAuthHelper.CreateUserAsync(apiKey, admin.Email!, admin.Password!);
+            // Check for null or empty values
+            if (string.IsNullOrEmpty(admin.Email) || string.IsNullOrEmpty(admin.Password))
+            {
+                return (false, "INVALID_INPUT", "Email and password must be provided.", null);
+            }
+
+            var result = await FirebaseAuthHelper.CreateUserAsync(apiKey, admin.Email, admin.Password);
 
             if (!result.Success)
             {
@@ -71,7 +77,7 @@ namespace BusFinderBackend.Services
             }
 
             var adminId = await _adminRepository.AddAdminAsync(admin);
-            await _emailService.SendCredentialsEmailAsync(admin.Email!, admin.Password!, "Admin", admin.FirstName!);
+            await _emailService.SendCredentialsEmailAsync(admin.Email, admin.Password, "Admin", admin.FirstName!);
             return (true, null, null, adminId);
         }
 

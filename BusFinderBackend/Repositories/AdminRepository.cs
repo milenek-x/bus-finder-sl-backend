@@ -47,7 +47,9 @@ namespace BusFinderBackend.Repositories
         public async Task<string> AddAdminAsync(Admin admin)
         {
             if (string.IsNullOrEmpty(admin.AdminId))
-                throw new ArgumentException("AdminId must be provided.");
+            {
+                admin.AdminId = await GenerateNextAdminIdAsync(); // Generate AdminId if not provided
+            }
 
             await _adminsCollection.Document(admin.AdminId).SetAsync(admin);
             return admin.AdminId;

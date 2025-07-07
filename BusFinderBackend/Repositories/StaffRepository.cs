@@ -96,5 +96,18 @@ namespace BusFinderBackend.Repositories
             }
             return null; // Return null if no staff found
         }
+
+        public async Task<List<Staff>> GetStaffByRoleAsync(string role)
+        {
+            var snapshot = await _staffCollection.WhereEqualTo("StaffRole", role).GetSnapshotAsync();
+            var staffList = new List<Staff>();
+            foreach (var doc in snapshot.Documents)
+            {
+                var staff = doc.ConvertTo<Staff>();
+                staff.StaffId = doc.Id; // Assuming StaffId is the document ID
+                staffList.Add(staff);
+            }
+            return staffList;
+        }
     }
 }

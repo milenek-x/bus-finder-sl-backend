@@ -6,6 +6,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using System; // For Exception
 using FirebaseAdmin.Auth; // For FirebaseAuth
+using System.IO;
 
 namespace BusFinderBackend.Services
 {
@@ -15,17 +16,20 @@ namespace BusFinderBackend.Services
         private readonly IConfiguration _configuration;
         private readonly EmailService _emailService;
         private readonly ILogger<StaffService> _logger;
+        private readonly DriveImageService _driveImageService;
 
         public StaffService(
             StaffRepository staffRepository,
             IConfiguration configuration,
             EmailService emailService,
-            ILogger<StaffService> logger)
+            ILogger<StaffService> logger,
+            DriveImageService driveImageService)
         {
             _staffRepository = staffRepository;
             _configuration = configuration;
             _emailService = emailService;
             _logger = logger;
+            _driveImageService = driveImageService;
         }
 
         public Task<List<Staff>> GetAllStaffAsync()
@@ -38,23 +42,24 @@ namespace BusFinderBackend.Services
             return _staffRepository.GetStaffByIdAsync(staffId);
         }
 
-        public async Task<(bool Success, string? ErrorCode, string? ErrorMessage)> AddStaffAsync(Staff staff)
+        public async Task<(bool Success, string? ErrorCode, string? ErrorMessage, string? StaffId)> AddStaffAsync(Staff staff)
         {
+            var firebaseSection = _configuration.GetSection("Firebase");
+            var apiKey = firebaseSection["ApiKey"];
+            if (string.IsNullOrEmpty(apiKey))
+            {
+                return (false, "NO_API_KEY", "Firebase API key is not configured.", null);
+            }
+
             if (string.IsNullOrEmpty(staff.StaffId))
             {
                 staff.StaffId = await _staffRepository.GenerateNextStaffIdAsync();
             }
 
+            // Check for null or empty values
             if (string.IsNullOrEmpty(staff.Email) || string.IsNullOrEmpty(staff.Password))
             {
-                return (false, "INVALID_INPUT", "Email and password must be provided.");
-            }
-            
-            var firebaseSection = _configuration.GetSection("Firebase");
-            var apiKey = firebaseSection["ApiKey"];
-            if (string.IsNullOrEmpty(apiKey))
-            {
-                return (false, "NO_API_KEY", "Firebase API key is not configured.");
+                return (false, "INVALID_INPUT", "Email and password must be provided.", null);
             }
 
             var firebaseResult = await Firebase.FirebaseAuthHelper.CreateUserAsync(apiKey, staff.Email, staff.Password);
@@ -63,27 +68,34 @@ namespace BusFinderBackend.Services
             {
                 if (firebaseResult.ErrorCode == "EMAIL_EXISTS")
                 {
-                    return (false, "EMAIL_EXISTS", "This email is already registered.");
+                    return (false, "EMAIL_EXISTS", "This email is already registered.", null);
                 }
-                return (false, firebaseResult.ErrorCode, firebaseResult.ErrorMessage);
+                return (false, firebaseResult.ErrorCode, firebaseResult.ErrorMessage, null);
             }
 
             await _staffRepository.AddStaffAsync(staff);
-            await _emailService.SendCredentialsEmailAsync(staff.Email!, staff.Password!, "Staff", staff.FirstName!);
-            return (true, null, null);
+            await _emailService.SendCredentialsEmailAsync(staff.Email!, staff.Password, "Staff", staff.FirstName!);
+            return (true, null, null, staff.StaffId);
         }
 
-        public Task UpdateStaffAsync(string staffId, Staff staff)
+        public async Task UpdateStaffAsync(string staffId, Staff staff)
         {
             // Password is not required, so we can just update the staff details without it.
-            return _staffRepository.UpdateStaffAsync(staffId, staff);
+            await _staffRepository.UpdateStaffAsync(staffId, staff);
         }
 
         public async Task DeleteStaffAsync(string staffId)
         {
             // Get the staff by ID
             var staff = await _staffRepository.GetStaffByIdAsync(staffId);
-            if (staff != null && !string.IsNullOrEmpty(staff.Email))
+
+            // Check if staff is null
+            if (staff == null)
+            {
+                return; // Exit if staff is not found
+            }
+
+            if (!string.IsNullOrEmpty(staff.Email))
             {
                 try
                 {
@@ -99,6 +111,8 @@ namespace BusFinderBackend.Services
                 }
             }
             await _staffRepository.DeleteStaffAsync(staffId);
+            // Send account deletion email
+            await _emailService.SendAccountDeletedEmailAsync(staff.Email!, staff.FirstName ?? "User"); // Default to "User" if FirstName is null
         }
 
         public async Task<(bool Success, string? ErrorCode, string? ErrorMessage)> LoginAsync(string email, string password)
@@ -213,6 +227,40 @@ namespace BusFinderBackend.Services
             // Extract the OOB code
             var oobCode = link.Substring(startIndex, endIndex - startIndex);
             return oobCode;
+        }
+
+        public async Task<List<Staff>> GetStaffByRoleAsync(string role)
+        {
+            return await _staffRepository.GetStaffByRoleAsync(role);
+        }
+
+        public async Task<string> UploadProfilePictureAsync(Stream profileImage, string fileName)
+        {
+            // Logic to upload the profile image using DriveImageService
+            return await _driveImageService.UploadImageAsync(profileImage, fileName);
+        }
+
+        public async Task<string?> GetProfilePictureAsync(string staffId)
+        {
+            // Logic to retrieve the profile picture URL from the database or repository
+            var staff = await _staffRepository.GetStaffByIdAsync(staffId);
+            return staff?.ProfilePicture; // Now safe to access
+        }
+
+        public async Task<string> UpdateProfilePictureAsync(string staffId, Stream profileImage, string fileName)
+        {
+            // Logic to update the profile image using DriveImageService
+            var staff = await _staffRepository.GetStaffByIdAsync(staffId);
+            if (staff == null)
+            {
+                throw new InvalidOperationException("Staff not found.");
+            }
+
+            // Upload the new image
+            var newImageUrl = await _driveImageService.UploadImageAsync(profileImage, fileName);
+            staff.ProfilePicture = newImageUrl;
+            await _staffRepository.UpdateStaffAsync(staffId, staff); // Ensure to update the staff record
+            return newImageUrl;
         }
     }
 }

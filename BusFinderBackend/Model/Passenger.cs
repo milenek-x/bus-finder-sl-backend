@@ -21,7 +21,6 @@ namespace BusFinderBackend.Model
         [FirestoreProperty]
         public string? Email { get; set; }
 
-        [FirestoreProperty]
         public string? Password { get; set; }
 
         [FirestoreProperty]
