@@ -48,7 +48,10 @@ namespace BusFinderBackend.Controllers
         [HttpPost]
         public async Task<IActionResult> AddStaff([FromBody] Staff staff)
         {
+            _logger.LogInformation("AddStaff endpoint called with: {@Staff}", staff);
+            
             var result = await _staffService.AddStaffAsync(staff);
+            _logger.LogInformation("AddStaff result: {Result}", result);
             if (!result.Success)
             {
                 return BadRequest(new

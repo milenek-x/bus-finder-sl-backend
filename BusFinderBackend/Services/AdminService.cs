@@ -88,7 +88,6 @@ namespace BusFinderBackend.Services
             // Check if admin is null
             if (admin == null)
             {
-                _logger.LogWarning($"Admin with ID {adminId} not found. No deletion performed.");
                 return; // Exit if admin is not found
             }
 
@@ -105,7 +104,6 @@ namespace BusFinderBackend.Services
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, $"Failed to delete admin from Firebase Authentication: {admin.Email}");
                 }
             }
 
@@ -128,7 +126,6 @@ namespace BusFinderBackend.Services
                 // Generate the password reset link
                 string link = await FirebaseAuth.DefaultInstance.GeneratePasswordResetLinkAsync(email);
                 string oobCode = ExtractOobCodeFromLink(link);
-                _logger.LogInformation("Generated password reset link for email: {Email}", email);
                 
                 // Retrieve the admin's details to get the name
                 var admin = await _adminRepository.GetAdminByEmailAsync(email); // Use the new method
@@ -144,7 +141,6 @@ namespace BusFinderBackend.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to generate password reset link for email: {Email}", email);
                 throw new InvalidOperationException("Failed to generate password reset link.", ex);
             }
         }

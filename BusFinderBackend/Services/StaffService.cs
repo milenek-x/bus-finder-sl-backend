@@ -40,6 +40,16 @@ namespace BusFinderBackend.Services
 
         public async Task<(bool Success, string? ErrorCode, string? ErrorMessage)> AddStaffAsync(Staff staff)
         {
+            if (string.IsNullOrEmpty(staff.StaffId))
+            {
+                staff.StaffId = await _staffRepository.GenerateNextStaffIdAsync();
+            }
+
+            if (string.IsNullOrEmpty(staff.Email) || string.IsNullOrEmpty(staff.Password))
+            {
+                return (false, "INVALID_INPUT", "Email and password must be provided.");
+            }
+            
             var firebaseSection = _configuration.GetSection("Firebase");
             var apiKey = firebaseSection["ApiKey"];
             if (string.IsNullOrEmpty(apiKey))
@@ -47,21 +57,15 @@ namespace BusFinderBackend.Services
                 return (false, "NO_API_KEY", "Firebase API key is not configured.");
             }
 
-            if (string.IsNullOrEmpty(staff.StaffId))
-            {
-                staff.StaffId = await _staffRepository.GenerateNextStaffIdAsync();
-            }
+            var firebaseResult = await Firebase.FirebaseAuthHelper.CreateUserAsync(apiKey, staff.Email, staff.Password);
 
-            // Create user in Firebase Authentication
-            var result = await Firebase.FirebaseAuthHelper.CreateUserAsync(apiKey, staff.Email!, staff.Password!);
-
-            if (!result.Success)
+            if (!firebaseResult.Success)
             {
-                if (result.ErrorCode == "EMAIL_EXISTS")
+                if (firebaseResult.ErrorCode == "EMAIL_EXISTS")
                 {
                     return (false, "EMAIL_EXISTS", "This email is already registered.");
                 }
-                return (false, result.ErrorCode, result.ErrorMessage);
+                return (false, firebaseResult.ErrorCode, firebaseResult.ErrorMessage);
             }
 
             await _staffRepository.AddStaffAsync(staff);
@@ -91,7 +95,7 @@ namespace BusFinderBackend.Services
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, $"Failed to delete staff from Firebase Authentication: {staff.Email}");
+                    // Handle exceptions (e.g., user not found, invalid token)
                 }
             }
             await _staffRepository.DeleteStaffAsync(staffId);
@@ -141,7 +145,6 @@ namespace BusFinderBackend.Services
                 // Generate the password reset link
                 string link = await FirebaseAuth.DefaultInstance.GeneratePasswordResetLinkAsync(email);
                 string oobCode = ExtractOobCodeFromLink(link);
-                _logger.LogInformation("Generated password reset link for email: {Email}", email);
 
                 // Retrieve the admin's details to get the name
                 var staff = await _staffRepository.GetStaffByEmailAsync(email); // Assuming email is used as ID or modify accordingly
@@ -154,7 +157,6 @@ namespace BusFinderBackend.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to generate password reset link for email: {Email}", email);
                 throw new InvalidOperationException("Failed to generate password reset link.", ex);
             }
         }

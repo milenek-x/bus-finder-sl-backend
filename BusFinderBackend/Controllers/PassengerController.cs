@@ -50,6 +50,7 @@ namespace BusFinderBackend.Controllers
         public async Task<IActionResult> AddPassenger([FromBody] Passenger passenger)
         {
             var result = await _passengerService.AddPassengerAsync(passenger);
+            _logger.LogInformation("AddStaff result: {Result}", result);
             if (!result.Success)
             {
                 return BadRequest(new

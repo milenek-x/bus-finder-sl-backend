@@ -6,6 +6,9 @@ using System.Linq;
 using System;
 using Microsoft.Extensions.Configuration;
 using FirebaseAdmin.Auth;
+using Microsoft.Extensions.Logging;
+using System.IO;
+using BusFinderBackend.Services;
 
 namespace BusFinderBackend.Services
 {
@@ -14,12 +17,16 @@ namespace BusFinderBackend.Services
         private readonly PassengerRepository _passengerRepository;
         private readonly IConfiguration _configuration;
         private readonly EmailService _emailService;
+        private readonly ILogger<PassengerService> _logger;
+        private readonly DriveImageService _driveImageService;
 
-        public PassengerService(PassengerRepository passengerRepository, IConfiguration configuration, EmailService emailService)
+        public PassengerService(PassengerRepository passengerRepository, IConfiguration configuration, EmailService emailService, ILogger<PassengerService> logger, DriveImageService driveImageService)
         {
             _passengerRepository = passengerRepository;
             _configuration = configuration;
             _emailService = emailService;
+            _logger = logger;
+            _driveImageService = driveImageService;
         }
 
         public async Task<List<Passenger>> GetAllPassengersAsync()
@@ -32,7 +39,7 @@ namespace BusFinderBackend.Services
             return await _passengerRepository.GetPassengerByIdAsync(passengerId);
         }
 
-        public async Task<(bool Success, string? ErrorCode, string? ErrorMessage)> AddPassengerAsync(Passenger passenger)
+        public async Task<(bool Success, string? ErrorCode, string? ErrorMessage)> AddPassengerAsync(Passenger passenger, Stream profileImage)
         {
             if (string.IsNullOrEmpty(passenger.PassengerId))
             {
@@ -52,7 +59,6 @@ namespace BusFinderBackend.Services
                 return (false, "NO_API_KEY", "Firebase API key is not configured.");
             }
 
-            // Create the user in Firebase Authentication
             var firebaseResult = await Firebase.FirebaseAuthHelper.CreateUserAsync(apiKey, passenger.Email, passenger.Password);
 
             if (!firebaseResult.Success)
@@ -60,8 +66,18 @@ namespace BusFinderBackend.Services
                 return (false, firebaseResult.ErrorCode, firebaseResult.ErrorMessage);
             }
 
-            // If user creation is successful, add the passenger to the repository
+            // If user creation is successful, upload the profile image if provided
+            if (profileImage != null)
+            {
+                var imageUrl = await _driveImageService.UploadImageAsync(profileImage, passenger.PassengerId + "_profile.jpg");
+                passenger.ProfileImageUrl = imageUrl;
+            }
+
+            // Add the passenger to the repository
             await _passengerRepository.AddPassengerAsync(passenger);
+
+            // Send credentials email after successful addition
+            await _emailService.SendCredentialsEmailAsync(passenger.Email!, passenger.Password!, "Passenger", passenger.FirstName!);
             return (true, null, null);
         }
 

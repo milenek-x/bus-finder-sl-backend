@@ -27,12 +27,6 @@ namespace BusFinderBackend.Model
         public string? TelNo { get; set; }
 
         [FirestoreProperty]
-        public string? Profile { get; set; }
-
-        [FirestoreProperty]
-        public string? PreferredLanguage { get; set; }
-
-        [FirestoreProperty]
         public string? Email { get; set; }
 
         [FirestoreProperty]
