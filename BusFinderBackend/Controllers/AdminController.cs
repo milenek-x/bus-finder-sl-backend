@@ -219,30 +219,6 @@ namespace BusFinderBackend.Controllers
             public string? NewPassword { get; set; }
         }
 
-        [HttpPost("upload-profile-picture")]
-        public async Task<IActionResult> UploadProfilePicture(IFormFile file)
-        {
-            if (file == null || file.Length == 0)
-            {
-                return BadRequest("No file uploaded.");
-            }
-
-            try
-            {
-                using (var stream = file.OpenReadStream())
-                {
-                    var fileName = $"profile_picture_{DateTime.UtcNow.Ticks}.jpg"; // Generate a unique file name
-                    var link = await _adminService.UploadProfilePictureAsync(stream, fileName);
-                    return Ok(new { link }); // Return the link to the uploaded image
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error uploading profile picture.");
-                return StatusCode(500, new { error = "Failed to upload profile picture.", message = ex.Message });
-            }
-        }
-
         [HttpPost("upload-profile-picture-blob")]
         public async Task<IActionResult> UploadProfilePictureBlob([FromBody] byte[] blob)
         {
@@ -256,53 +232,6 @@ namespace BusFinderBackend.Controllers
                 var fileName = $"profile_picture_{DateTime.UtcNow.Ticks}.jpg"; // Generate a unique file name
                 var link = await _adminService.UploadProfilePictureAsync(stream, fileName);
                 return Ok(new { link }); // Return the link to the uploaded image
-            }
-        }
-
-        [HttpPost("add-with-picture")]
-        public async Task<IActionResult> AddAdminWithPicture([FromBody] Admin admin)
-        {
-            try
-            {
-                if (string.IsNullOrEmpty(admin.ProfilePicture) || !System.IO.File.Exists(admin.ProfilePicture))
-                {
-                    return BadRequest(new
-                    {
-                        error = "INVALID_FILE_PATH",
-                        message = "The profile picture path is invalid or the file does not exist."
-                    });
-                }
-
-                // Open and upload profile picture
-                await using var imageStream = System.IO.File.OpenRead(admin.ProfilePicture);
-                var fileName = $"profile_picture_{DateTime.UtcNow.Ticks}.jpg";
-                var profilePictureUrl = await _adminService.UploadProfilePictureAsync(imageStream, fileName);
-
-                // Replace local path with hosted URL
-                admin.ProfilePicture = profilePictureUrl;
-
-                var result = await _adminService.AddAdminAsync(admin);
-
-                if (!result.Success)
-                {
-                    return BadRequest(new
-                    {
-                        error = result.ErrorCode,
-                        message = result.ErrorMessage
-                    });
-                }
-
-                admin.AdminId = result.AdminId;
-                return CreatedAtAction(nameof(AddAdmin), new { id = admin.AdminId }, admin);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error while registering admin with profile picture.");
-                return StatusCode(500, new
-                {
-                    error = "INTERNAL_ERROR",
-                    message = ex.Message
-                });
             }
         }
 
