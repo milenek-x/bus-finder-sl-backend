@@ -87,15 +87,12 @@ builder.Services.AddSwaggerGen(c =>
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+app.UseSwagger();
+app.UseSwaggerUI(c =>
 {
-    app.UseSwagger();
-    app.UseSwaggerUI(c =>
-    {
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "Bus Finder Backend V1");
-        c.RoutePrefix = string.Empty; // Set to empty string to serve the Swagger UI at the app's root
-    });
-}
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "Bus Finder Backend V1");
+    c.RoutePrefix = string.Empty; // Set to empty string to serve the Swagger UI at the app's root
+});
 
 app.UseHttpsRedirection();
 
