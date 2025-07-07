@@ -6,6 +6,8 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using FirebaseAdmin.Auth;
+using Microsoft.AspNetCore.Http;
+using System.IO;
 
 namespace BusFinderBackend.Controllers
 {
@@ -47,10 +49,13 @@ namespace BusFinderBackend.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> AddPassenger([FromBody] Passenger passenger)
+        public async Task<IActionResult> AddPassenger([FromForm] Passenger passenger, IFormFile profileImage)
         {
-            var result = await _passengerService.AddPassengerAsync(passenger);
-            _logger.LogInformation("AddStaff result: {Result}", result);
+            using var stream = new MemoryStream();
+            await profileImage.CopyToAsync(stream);
+            stream.Position = 0; // Reset the stream position
+
+            var result = await _passengerService.AddPassengerAsync(passenger, stream);
             if (!result.Success)
             {
                 return BadRequest(new
@@ -198,14 +203,14 @@ namespace BusFinderBackend.Controllers
         }
 
         [HttpPut("{passengerId}/location")]
-        public async Task<IActionResult> UpdateLocation(string passengerId, [FromBody] LocationUpdateRequest request)
+        public async Task<IActionResult> UpdateLocation(string passengerId, [FromBody] PassengerLocationUpdateRequest request)
         {
-            await _passengerService.UpdateLocationAsync(passengerId, request.CurrentLocationLatitude, request.CurrentLocationLongitude);
+            await _passengerService.UpdateLocationAsync(passengerId, request.Latitude, request.Longitude);
             return Ok(new { message = "Location updated." });
         }
 
         [HttpPost("verify-oob-code")]
-        public async Task<IActionResult> VerifyOobCode([FromBody] VerifyOobCodeRequest request)
+        public async Task<IActionResult> VerifyOobCode([FromBody] PassengerVerifyOobCodeRequest request)
         {
             if (string.IsNullOrEmpty(request.Email) || string.IsNullOrEmpty(request.OobCode))
             {
@@ -249,10 +254,10 @@ namespace BusFinderBackend.Controllers
             public string IdToken { get; set; } = string.Empty; // The ID token received from Google Sign-In
         }
 
-        public class LocationUpdateRequest
+        public class PassengerLocationUpdateRequest
         {
-            public double? CurrentLocationLatitude { get; set; }
-            public double? CurrentLocationLongitude { get; set; }
+            public double? Latitude { get; set; }
+            public double? Longitude { get; set; }
         }
 
         public class FavoriteRouteRequest
@@ -265,10 +270,22 @@ namespace BusFinderBackend.Controllers
             public string PlaceId { get; set; } = string.Empty; // Accept placeId as a string
         }
 
-        public class VerifyOobCodeRequest
+        public class PassengerVerifyOobCodeRequest
         {
-            public string Email { get; set; } = string.Empty;
-            public string OobCode { get; set; } = string.Empty;
+            public string? Email { get; set; }
+            public string? OobCode { get; set; }
+        }
+
+        public class PassengerForgotPasswordRequest
+        {
+            public string? Email { get; set; }
+            public string? NewPassword { get; set; }
+        }
+
+        public class PassengerResetPasswordRequest
+        {
+            public string? Email { get; set; }
+            public string? NewPassword { get; set; }
         }
     }
 } 

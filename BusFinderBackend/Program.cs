@@ -6,6 +6,7 @@ using FirebaseAdmin;
 using Google.Apis.Auth.OAuth2;
 using Microsoft.Extensions.Configuration; // Ensure this is present for IConfiguration
 using System.IO;
+using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -74,10 +75,14 @@ builder.Services.AddScoped<BusShiftRepository>();
 builder.Services.AddScoped<BusShiftService>();
 builder.Services.AddScoped<PassengerRepository>();
 builder.Services.AddScoped<PassengerService>();
+builder.Services.AddScoped<DriveImageService>();
 
 // Add Swagger/OpenAPI support (optional, but common for APIs)
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "Bus Finder Backend", Version = "v1" });
+});
 
 var app = builder.Build();
 
@@ -85,7 +90,11 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "Bus Finder Backend V1");
+        c.RoutePrefix = string.Empty; // Set to empty string to serve the Swagger UI at the app's root
+    });
 }
 
 app.UseHttpsRedirection();

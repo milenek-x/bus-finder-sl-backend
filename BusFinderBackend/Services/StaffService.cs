@@ -93,7 +93,7 @@ namespace BusFinderBackend.Services
                         await FirebaseAuth.DefaultInstance.DeleteUserAsync(userRecord.Uid);
                     }
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
                     // Handle exceptions (e.g., user not found, invalid token)
                 }

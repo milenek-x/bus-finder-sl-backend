@@ -166,13 +166,14 @@ namespace BusFinderBackend.Controllers
             return Ok(new { message = "Password updated successfully." });
         }
 
-        public class ForgotPasswordRequest
+        public class AdminForgotPasswordRequest
         {
-            public string Email { get; set; } = string.Empty; // Default to empty string
+            public string? Email { get; set; }
+            public string? NewPassword { get; set; }
         }
 
         [HttpPost("forgot-password")]
-        public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequest request)
+        public async Task<IActionResult> ForgotPassword([FromBody] AdminForgotPasswordRequest request)
         {
             if (string.IsNullOrEmpty(request.Email))
             {
@@ -194,7 +195,7 @@ namespace BusFinderBackend.Controllers
         }
 
         [HttpPost("reset-password")]
-        public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordRequest request)
+        public async Task<IActionResult> ResetPassword([FromBody] AdminResetPasswordRequest request)
         {
             if (string.IsNullOrEmpty(request.Email) || string.IsNullOrEmpty(request.NewPassword))
             {
@@ -212,10 +213,10 @@ namespace BusFinderBackend.Controllers
             }
         }
 
-        public class ResetPasswordRequest
+        public class AdminResetPasswordRequest
         {
-            public string Email { get; set; } = string.Empty;
-            public string NewPassword { get; set; } = string.Empty;
+            public string? Email { get; set; }
+            public string? NewPassword { get; set; }
         }
 
         [HttpPost("upload-profile-picture")]
@@ -363,7 +364,7 @@ namespace BusFinderBackend.Controllers
         }
 
         [HttpPost("verify-oob-code")]
-        public async Task<IActionResult> VerifyOobCode([FromBody] VerifyOobCodeRequest request)
+        public async Task<IActionResult> VerifyOobCode([FromBody] AdminVerifyOobCodeRequest request)
         {
             if (string.IsNullOrEmpty(request.Email) || string.IsNullOrEmpty(request.OobCode))
             {
@@ -378,10 +379,16 @@ namespace BusFinderBackend.Controllers
             return BadRequest(new { error = "Invalid or expired oobCode." });
         }
 
-        public class VerifyOobCodeRequest
+        public class AdminVerifyOobCodeRequest
         {
-            public string Email { get; set; } = string.Empty;
-            public string OobCode { get; set; } = string.Empty;
+            public string? Email { get; set; }
+            public string? OobCode { get; set; }
+        }
+
+        public class AdminLocationUpdateRequest
+        {
+            public double? Latitude { get; set; }
+            public double? Longitude { get; set; }
         }
     }
 }

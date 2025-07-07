@@ -144,17 +144,18 @@ namespace BusFinderBackend.Controllers
             return Ok(new { message = "Password updated successfully." });
         }
 
-        public class ForgotPasswordRequest
+        public class StaffForgotPasswordRequest
         {
-            public string Email { get; set; } = string.Empty;
+            public string? Email { get; set; }
+            public string? NewPassword { get; set; }
         }
 
         [HttpPost("forgot-password")]
-        public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequest request)
+        public async Task<IActionResult> ForgotPassword([FromBody] StaffForgotPasswordRequest request)
         {
             try
             {
-                string resetLink = await _staffService.GeneratePasswordResetLinkAsync(request.Email);
+                string resetLink = await _staffService.GeneratePasswordResetLinkAsync(request.Email!);
                 return Ok(new { resetLink });
             }
             catch (Exception ex)
@@ -163,24 +164,30 @@ namespace BusFinderBackend.Controllers
             }
         }
 
-        public class ResetPasswordRequest
+        public class StaffResetPasswordRequest
         {
-            public string Email { get; set; } = string.Empty;
-            public string NewPassword { get; set; } = string.Empty;
+            public string? Email { get; set; }
+            public string? NewPassword { get; set; }
         }
 
         [HttpPost("reset-password")]
-        public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordRequest request)
+        public async Task<IActionResult> ResetPassword([FromBody] StaffResetPasswordRequest request)
         {
             try
             {
-                bool result = await _staffService.ResetPasswordAsync(request.Email, request.NewPassword);
+                bool result = await _staffService.ResetPasswordAsync(request.Email!, request.NewPassword!);
                 return Ok(new { message = "Password reset successfully." });
             }
             catch (Exception ex)
             {
                 return BadRequest(new { error = ex.Message });
             }
+        }
+
+        public class StaffVerifyOobCodeRequest
+        {
+            public string? Email { get; set; }
+            public string? OobCode { get; set; }
         }
     }
 }
