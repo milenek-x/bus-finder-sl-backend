@@ -39,7 +39,7 @@ namespace BusFinderBackend.Services
             return await _passengerRepository.GetPassengerByIdAsync(passengerId);
         }
 
-        public async Task<(bool Success, string? ErrorCode, string? ErrorMessage)> AddPassengerAsync(Passenger passenger, Stream profileImage)
+        public async Task<(bool Success, string? ErrorCode, string? ErrorMessage)> AddPassengerAsync(Passenger passenger)
         {
             if (string.IsNullOrEmpty(passenger.PassengerId))
             {
@@ -64,13 +64,6 @@ namespace BusFinderBackend.Services
             if (!firebaseResult.Success)
             {
                 return (false, firebaseResult.ErrorCode, firebaseResult.ErrorMessage);
-            }
-
-            // If user creation is successful, upload the profile image if provided
-            if (profileImage != null)
-            {
-                var imageUrl = await _driveImageService.UploadImageAsync(profileImage, passenger.PassengerId + "_profile.jpg");
-                passenger.ProfileImageUrl = imageUrl;
             }
 
             // Add the passenger to the repository
@@ -330,6 +323,42 @@ namespace BusFinderBackend.Services
             // Implement logic to retrieve the stored oobCode for the given email
             // This could be in-memory storage, a database, or any other temporary storage
             throw new NotImplementedException();
+        }
+
+        public async Task<string> UploadProfilePictureAsync(Stream profileImage, string fileName)
+        {
+            // Logic to upload the profile image using DriveImageService
+            return await _driveImageService.UploadImageAsync(profileImage, fileName);
+        }
+
+        public async Task<string?> GetProfilePictureAsync(string passengerId)
+        {
+            // Logic to retrieve the profile picture URL from the database or repository
+            var passenger = await _passengerRepository.GetPassengerByIdAsync(passengerId);
+            
+            // Check if passenger is null and return null if it is
+            if (passenger == null)
+            {
+                return null; // or throw an exception if you prefer
+            }
+
+            return passenger.ProfileImageUrl; // Now safe to access
+        }
+
+        public async Task<string> UpdateProfilePictureAsync(string passengerId, Stream profileImage, string fileName)
+        {
+            // Logic to update the profile image using DriveImageService
+            var passenger = await _passengerRepository.GetPassengerByIdAsync(passengerId);
+            if (passenger == null)
+            {
+                throw new InvalidOperationException("Passenger not found.");
+            }
+
+            // Upload the new image
+            var newImageUrl = await _driveImageService.UploadImageAsync(profileImage, fileName);
+            passenger.ProfileImageUrl = newImageUrl;
+            await _passengerRepository.UpdatePassengerAsync(passengerId, passenger);
+            return newImageUrl;
         }
     }
 } 

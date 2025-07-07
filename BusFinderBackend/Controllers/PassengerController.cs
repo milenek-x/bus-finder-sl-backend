@@ -49,13 +49,14 @@ namespace BusFinderBackend.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> AddPassenger([FromForm] Passenger passenger, IFormFile profileImage)
+        public async Task<IActionResult> AddPassenger([FromBody] Passenger passenger)
         {
-            using var stream = new MemoryStream();
-            await profileImage.CopyToAsync(stream);
-            stream.Position = 0; // Reset the stream position
+            if (string.IsNullOrEmpty(passenger.ProfileImageUrl))
+            {
+                return BadRequest("Profile image URL must be provided.");
+            }
 
-            var result = await _passengerService.AddPassengerAsync(passenger, stream);
+            var result = await _passengerService.AddPassengerAsync(passenger);
             if (!result.Success)
             {
                 return BadRequest(new
@@ -223,6 +224,67 @@ namespace BusFinderBackend.Controllers
                 return Ok(new { message = "OobCode is valid." });
             }
             return BadRequest(new { error = "Invalid or expired oobCode." });
+        }
+
+        [HttpPost("upload-profile-picture")]
+        public async Task<IActionResult> UploadProfilePicture( IFormFile file)
+        {
+            if (file == null || file.Length == 0)
+            {
+                return BadRequest("No file uploaded.");
+            }
+
+            try
+            {
+                using (var stream = file.OpenReadStream())
+                {
+                    var fileName = $"profile_picture_{DateTime.UtcNow.Ticks}.jpg";
+                    var link = await _passengerService.UploadProfilePictureAsync(stream, fileName);
+                    return Ok(new { link });
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error uploading profile picture.");
+                return StatusCode(500, new { error = "Failed to upload profile picture.", message = ex.Message });
+            }
+        }
+
+        [HttpGet("profile-picture/{passengerId}")]
+        public async Task<IActionResult> GetProfilePicture(string passengerId)
+        {
+            var link = await _passengerService.GetProfilePictureAsync(passengerId);
+            if (string.IsNullOrEmpty(link))
+            {
+                return NotFound(new { error = "Profile picture not found." });
+            }
+            return Ok(new { link });
+        }
+
+        [HttpPut("update-profile-picture/{passengerId}")]
+        public async Task<IActionResult> UpdateProfilePicture(string passengerId, IFormFile file)
+        {
+            if (file == null || file.Length == 0)
+            {
+                return BadRequest("No file uploaded.");
+            }
+
+            try
+            {
+                using (var stream = new MemoryStream())
+                {
+                    await file.CopyToAsync(stream);
+                    stream.Position = 0;
+                    var fileName = $"profile_picture_{passengerId}_{DateTime.UtcNow.Ticks}.jpg";
+                    var link = await _passengerService.UpdateProfilePictureAsync(passengerId, stream, fileName);
+                    return Ok(new { link });
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating profile picture for passenger {PassengerId}.", passengerId);
+                return StatusCode(500, new { error = "Failed to update profile picture.", message = ex.Message });
+            }
         }
 
         public class LoginRequest
