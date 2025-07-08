@@ -287,6 +287,23 @@ namespace BusFinderBackend.Controllers
             }
         }
 
+        [HttpGet("get-id-by-email/{email}")]
+        public async Task<IActionResult> GetPassengerIdByEmail(string email)
+        {
+            if (string.IsNullOrEmpty(email))
+            {
+                return BadRequest("Email cannot be null or empty.");
+            }
+
+            var passengerId = await _passengerService.GetPassengerIdByEmailAsync(email);
+            if (passengerId == null)
+            {
+                return NotFound(new { error = "Passenger not found." });
+            }
+
+            return Ok(new { passengerId });
+        }
+
         public class LoginRequest
         {
             public string Email { get; set; } = string.Empty;

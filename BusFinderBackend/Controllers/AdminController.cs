@@ -326,5 +326,22 @@ namespace BusFinderBackend.Controllers
             public double? Latitude { get; set; }
             public double? Longitude { get; set; }
         }
+
+        [HttpGet("get-id-by-email/{email}")]
+        public async Task<IActionResult> GetAdminIdByEmail(string email)
+        {
+            if (string.IsNullOrEmpty(email))
+            {
+                return BadRequest("Email cannot be null or empty.");
+            }
+
+            var adminId = await _adminService.GetAdminIdByEmailAsync(email);
+            if (adminId == null)
+            {
+                return NotFound(new { error = "Admin not found." });
+            }
+
+            return Ok(new { adminId });
+        }
     }
 }

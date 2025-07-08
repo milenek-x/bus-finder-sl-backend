@@ -335,12 +335,16 @@ namespace BusFinderBackend.Services
             var passenger = await _passengerRepository.GetPassengerByIdAsync(passengerId);
             
             // Check if passenger is null and return null if it is
-            if (passenger == null)
+            if (passenger == null || string.IsNullOrEmpty(passenger.ProfileImageUrl))
             {
                 return null; // or throw an exception if you prefer
             }
 
-            return passenger.ProfileImageUrl; // Now safe to access
+            // Use the DriveImageService to get the profile picture as a byte array
+            byte[] imageBytes = await _driveImageService.GetImageAsync(passenger.ProfileImageUrl);
+            
+            // Convert byte array to base64 string
+            return Convert.ToBase64String(imageBytes);
         }
 
         public async Task<string> UpdateProfilePictureAsync(string passengerId, Stream profileImage, string fileName)
@@ -357,6 +361,12 @@ namespace BusFinderBackend.Services
             passenger.ProfileImageUrl = newImageUrl;
             await _passengerRepository.UpdatePassengerAsync(passengerId, passenger);
             return newImageUrl;
+        }
+
+        public async Task<string?> GetPassengerIdByEmailAsync(string email)
+        {
+            var passenger = await _passengerRepository.GetPassengerByEmailAsync(email);
+            return passenger?.PassengerId; // Return the passenger ID or null if not found
         }
     }
 } 

@@ -257,5 +257,22 @@ namespace BusFinderBackend.Controllers
                 return StatusCode(500, new { error = "Failed to update profile picture.", message = ex.Message });
             }
         }
+
+        [HttpGet("get-id-by-email/{email}")]
+        public async Task<IActionResult> GetStaffIdByEmail(string email)
+        {
+            if (string.IsNullOrEmpty(email))
+            {
+                return BadRequest("Email cannot be null or empty.");
+            }
+
+            var staffId = await _staffService.GetStaffIdByEmailAsync(email);
+            if (staffId == null)
+            {
+                return NotFound(new { error = "Staff not found." });
+            }
+
+            return Ok(new { staffId });
+        }
     }
 }

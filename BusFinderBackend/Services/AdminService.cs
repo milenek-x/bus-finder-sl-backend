@@ -17,6 +17,7 @@ using System.Net.Http;
 using System.Text;
 using Newtonsoft.Json;
 using Microsoft.Net.Http.Headers;
+using BusFinderBackend.Services;
 
 namespace BusFinderBackend.Services
 {
@@ -26,13 +27,15 @@ namespace BusFinderBackend.Services
         private readonly IConfiguration _configuration;
         private readonly EmailService _emailService;
         private readonly ILogger<AdminService> _logger;
+        private readonly DriveImageService _driveImageService;
     
-        public AdminService(AdminRepository adminRepository, IConfiguration configuration, EmailService emailService, ILogger<AdminService> logger)
+        public AdminService(AdminRepository adminRepository, IConfiguration configuration, EmailService emailService, ILogger<AdminService> logger, DriveImageService driveImageService)
         {
             _adminRepository = adminRepository;
             _configuration = configuration;
             _emailService = emailService;
             _logger = logger;
+            _driveImageService = driveImageService;
         }
 
         public Task<List<Admin>> GetAllAdminsAsync()
@@ -205,110 +208,9 @@ namespace BusFinderBackend.Services
             return oobCode;
         }
 
-        public async Task<string> UploadProfilePictureAsync(Stream imageStream, string fileName)
+        public async Task<string> UploadProfilePictureAsync(Stream profileImage, string fileName)
         {
-            var serviceAccountEmail = _configuration["GoogleDrive:ClientEmail"];
-            var rawPrivateKey = _configuration["GoogleDrive:PrivateKey"];
-            var privateKey = rawPrivateKey?.Replace("\\n", "\n");
-
-            var folderId = _configuration["GoogleDrive:FolderId"]; // This should now be "1OUrlNlD5_sD_QAlC3Qf4IZsz5NMOtFh4"
-
-            if (string.IsNullOrEmpty(serviceAccountEmail) || string.IsNullOrEmpty(privateKey) || string.IsNullOrEmpty(folderId))
-                throw new InvalidOperationException("Missing Google Drive credentials or folder ID.");
-
-            var credentialJson = $@"{{
-                ""type"": ""service_account"",
-                ""project_id"": ""{_configuration["GoogleDrive:ProjectId"]}"",
-                ""private_key_id"": ""{_configuration["GoogleDrive:PrivateKeyId"]}"",
-                ""private_key"": ""{privateKey}"",
-                ""client_email"": ""{serviceAccountEmail}"",
-                ""client_id"": ""{_configuration["GoogleDrive:ClientId"]}"",
-                ""auth_uri"": ""https://accounts.google.com/o/oauth2/auth"",
-                ""token_uri"": ""https://oauth2.googleapis.com/token"",
-                ""auth_provider_x509_cert_url"": ""https://www.googleapis.com/oauth2/v1/certs"",
-                ""client_x509_cert_url"": ""{_configuration["GoogleDrive:ClientCertUrl"]}""
-            }}";
-
-            var credential = GoogleCredential.FromJson(credentialJson)
-                .CreateScoped(DriveService.Scope.Drive);
-
-            var service = new DriveService(new BaseClientService.Initializer
-            {
-                HttpClientInitializer = credential,
-                ApplicationName = "YourAppName"
-            });
-
-            var fileMetaData = new Google.Apis.Drive.v3.Data.File()
-            {
-                Name = fileName,
-                Parents = new List<string> { folderId }
-            };
-
-            using var memoryStream = new MemoryStream();
-            await imageStream.CopyToAsync(memoryStream);
-            memoryStream.Position = 0;
-
-            var request = service.Files.Create(fileMetaData, memoryStream, "image/jpeg");
-            request.Fields = "id";
-            request.SupportsAllDrives = true; // 💡 important if uploading to shared/team drives
-
-            var uploadStatus = await request.UploadAsync();
-            if (uploadStatus.Status != Google.Apis.Upload.UploadStatus.Completed)
-            {
-                throw new Exception($"Google Drive upload failed: {uploadStatus.Exception?.Message}");
-            }
-
-            var uploadedFile = request.ResponseBody;
-            if (uploadedFile == null || uploadedFile.Id == null)
-            {
-                throw new Exception("Upload failed: no file metadata returned.");
-            }
-
-            return $"https://drive.google.com/uc?id={uploadedFile.Id}";
-        }
-
-        public async Task<byte[]> GetProfilePictureAsync(string profilePictureUrl)
-        {
-            if (string.IsNullOrEmpty(profilePictureUrl))
-            {
-                throw new ArgumentException("Profile picture URL cannot be null or empty.", nameof(profilePictureUrl));
-            }
-
-            // Extract the file ID from the URL
-            var fileId = profilePictureUrl.Split('=')[1];
-
-            // Create a Google Drive service instance
-            var serviceAccountEmail = _configuration["GoogleDrive:ClientEmail"];
-            var rawPrivateKey = _configuration["GoogleDrive:PrivateKey"];
-            var privateKey = rawPrivateKey?.Replace("\\n", "\n");
-
-            var credentialJson = $@"{{
-                ""type"": ""service_account"",
-                ""project_id"": ""{_configuration["GoogleDrive:ProjectId"]}"",
-                ""private_key_id"": ""{_configuration["GoogleDrive:PrivateKeyId"]}"",
-                ""private_key"": ""{privateKey}"",
-                ""client_email"": ""{serviceAccountEmail}"",
-                ""client_id"": ""{_configuration["GoogleDrive:ClientId"]}"",
-                ""auth_uri"": ""https://accounts.google.com/o/oauth2/auth"",
-                ""token_uri"": ""https://oauth2.googleapis.com/token"",
-                ""auth_provider_x509_cert_url"": ""https://www.googleapis.com/oauth2/v1/certs"",
-                ""client_x509_cert_url"": ""{_configuration["GoogleDrive:ClientCertUrl"]}""
-            }}";
-
-            var credential = GoogleCredential.FromJson(credentialJson)
-                .CreateScoped(DriveService.Scope.Drive);
-
-            var service = new DriveService(new BaseClientService.Initializer
-            {
-                HttpClientInitializer = credential,
-                ApplicationName = "YourAppName"
-            });
-
-            // Fetch the file from Google Drive
-            var request = service.Files.Get(fileId);
-            var stream = new MemoryStream();
-            await request.DownloadAsync(stream);
-            return stream.ToArray(); // Return the image as a byte array
+            return await _driveImageService.UploadImageAsync(profileImage, fileName);
         }
 
         public async Task<bool> VerifyOobCodeAsync(string email, string oobCode)
@@ -324,6 +226,42 @@ namespace BusFinderBackend.Services
                 return true;
             }
             return false;
+        }
+
+        public async Task<string> GetProfilePictureAsync(string adminId)
+        {
+            var admin = await _adminRepository.GetAdminByIdAsync(adminId);
+            if (admin == null || string.IsNullOrEmpty(admin.ProfilePicture))
+            {
+                throw new InvalidOperationException("Admin not found or profile picture not set.");
+            }
+
+            // Use the DriveImageService to get the profile picture as a byte array
+            byte[] imageBytes = await _driveImageService.GetImageAsync(admin.ProfilePicture);
+            
+            // Convert byte array to base64 string
+            return Convert.ToBase64String(imageBytes);
+        }
+
+        public async Task<string> UpdateProfilePictureAsync(string adminId, Stream profileImage, string fileName)
+        {
+            var admin = await _adminRepository.GetAdminByIdAsync(adminId);
+            if (admin == null)
+            {
+                throw new InvalidOperationException("Admin not found.");
+            }
+
+            // Upload the new image using DriveImageService
+            var newImageUrl = await _driveImageService.UploadImageAsync(profileImage, fileName);
+            admin.ProfilePicture = newImageUrl; // Update the admin's profile picture URL
+            await _adminRepository.UpdateAdminAsync(adminId, admin); // Ensure to update the admin record
+            return newImageUrl;
+        }
+
+        public async Task<string?> GetAdminIdByEmailAsync(string email)
+        {
+            var admin = await _adminRepository.GetAdminByEmailAsync(email);
+            return admin?.AdminId; // Return the admin ID or null if not found
         }
     }
 }

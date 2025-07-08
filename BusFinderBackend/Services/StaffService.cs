@@ -244,7 +244,17 @@ namespace BusFinderBackend.Services
         {
             // Logic to retrieve the profile picture URL from the database or repository
             var staff = await _staffRepository.GetStaffByIdAsync(staffId);
-            return staff?.ProfilePicture; // Now safe to access
+            // Check if passenger is null and return null if it is
+            if (staff == null || string.IsNullOrEmpty(staff.ProfilePicture))
+            {
+                return null; // or throw an exception if you prefer
+            }
+
+            // Use the DriveImageService to get the profile picture as a byte array
+            byte[] imageBytes = await _driveImageService.GetImageAsync(staff.ProfilePicture);
+            
+            // Convert byte array to base64 string
+            return Convert.ToBase64String(imageBytes);
         }
 
         public async Task<string> UpdateProfilePictureAsync(string staffId, Stream profileImage, string fileName)
@@ -261,6 +271,12 @@ namespace BusFinderBackend.Services
             staff.ProfilePicture = newImageUrl;
             await _staffRepository.UpdateStaffAsync(staffId, staff); // Ensure to update the staff record
             return newImageUrl;
+        }
+
+        public async Task<string?> GetStaffIdByEmailAsync(string email)
+        {
+            var staff = await _staffRepository.GetStaffByEmailAsync(email);
+            return staff?.StaffId; // Return the staff ID or null if not found
         }
     }
 }
