@@ -240,21 +240,18 @@ namespace BusFinderBackend.Services
             return await _driveImageService.UploadImageAsync(profileImage, fileName);
         }
 
-        public async Task<string?> GetProfilePictureAsync(string staffId)
+        public async Task<byte[]> GetProfilePictureAsync(string profilePictureUrl)
         {
-            // Logic to retrieve the profile picture URL from the database or repository
-            var staff = await _staffRepository.GetStaffByIdAsync(staffId);
-            // Check if passenger is null and return null if it is
-            if (staff == null || string.IsNullOrEmpty(staff.ProfilePicture))
+            if (string.IsNullOrEmpty(profilePictureUrl))
             {
-                return null; // or throw an exception if you prefer
+                throw new ArgumentException("Profile picture URL cannot be null or empty.", nameof(profilePictureUrl));
             }
 
-            // Use the DriveImageService to get the profile picture as a byte array
-            byte[] imageBytes = await _driveImageService.GetImageAsync(staff.ProfilePicture);
+            // Extract the file ID from the URL
+            var fileId = profilePictureUrl.Split('=')[1];
+            byte[] imageBytes = await _driveImageService.GetImageAsync(profilePictureUrl);
             
-            // Convert byte array to base64 string
-            return Convert.ToBase64String(imageBytes);
+            return imageBytes; // Return the image as a byte array
         }
 
         public async Task<string> UpdateProfilePictureAsync(string staffId, Stream profileImage, string fileName)

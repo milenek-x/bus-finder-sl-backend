@@ -253,12 +253,14 @@ namespace BusFinderBackend.Controllers
         [HttpGet("profile-picture/{passengerId}")]
         public async Task<IActionResult> GetProfilePicture(string passengerId)
         {
-            var link = await _passengerService.GetProfilePictureAsync(passengerId);
-            if (string.IsNullOrEmpty(link))
+            var passenger = await _passengerService.GetPassengerByIdAsync(passengerId);
+            if (passenger == null || string.IsNullOrEmpty(passenger.ProfileImageUrl))
             {
-                return NotFound(new { error = "Profile picture not found." });
+                return NotFound(new { error = "Admin not found or profile picture not set." });
             }
-            return Ok(new { link });
+
+            var imageBytes = await _passengerService.GetProfilePictureAsync(passenger.ProfileImageUrl);
+            return File(imageBytes, "image/jpeg"); // Return the image as a file response
         }
 
         [HttpPut("update-profile-picture/{passengerId}")]

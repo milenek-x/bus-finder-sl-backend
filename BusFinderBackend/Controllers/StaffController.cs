@@ -224,12 +224,14 @@ namespace BusFinderBackend.Controllers
         [HttpGet("{staffId}/profile-picture")]
         public async Task<IActionResult> GetProfilePicture(string staffId)
         {
-            var link = await _staffService.GetProfilePictureAsync(staffId);
-            if (string.IsNullOrEmpty(link))
+            var staff = await _staffService.GetStaffByIdAsync(staffId);
+            if (staff == null || string.IsNullOrEmpty(staff.ProfilePicture))
             {
-                return NotFound(new { error = "Profile picture not found." });
+                return NotFound(new { error = "Admin not found or profile picture not set." });
             }
-            return Ok(new { link });
+
+            var imageBytes = await _staffService.GetProfilePictureAsync(staff.ProfilePicture);
+            return File(imageBytes, "image/jpeg"); // Return the image as a file response
         }
 
         [HttpPut("{staffId}/update-profile-picture")]
