@@ -12,7 +12,10 @@ namespace BusFinderBackend.Model
         public string? BusType { get; set; } = null;
 
         [FirestoreProperty]
-        public string? StaffID { get; set; } = null;
+        public string? DriverId { get; set; } = null;
+
+        [FirestoreProperty]
+        public string? ConductorId { get; set; } = null;
 
         [FirestoreProperty]
         public bool BusCapacity { get; set; } = false; // Default to false

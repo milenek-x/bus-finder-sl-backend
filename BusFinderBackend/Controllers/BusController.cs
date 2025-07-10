@@ -37,6 +37,17 @@ namespace BusFinderBackend.Controllers
         [HttpPost]
         public async Task<IActionResult> AddBus([FromBody] Bus bus)
         {
+            // Validate DriverId and ConductorId
+            if (string.IsNullOrEmpty(bus.DriverId))
+            {
+                return BadRequest("DriverId cannot be null or empty.");
+            }
+
+            if (string.IsNullOrEmpty(bus.ConductorId))
+            {
+                return BadRequest("ConductorId cannot be null or empty.");
+            }
+
             await _busService.AddBusAsync(bus);
             return CreatedAtAction(nameof(GetBusByNumberPlate), new { numberPlate = bus.NumberPlate }, bus);
         }
@@ -65,6 +76,17 @@ namespace BusFinderBackend.Controllers
         [HttpPut("{numberPlate}")]
         public async Task<IActionResult> UpdateBus(string numberPlate, [FromBody] Bus bus)
         {
+            // Validate DriverId and ConductorId
+            if (string.IsNullOrEmpty(bus.DriverId))
+            {
+                return BadRequest("DriverId cannot be null or empty.");
+            }
+
+            if (string.IsNullOrEmpty(bus.ConductorId))
+            {
+                return BadRequest("ConductorId cannot be null or empty.");
+            }
+
             // Additional business logic can be added here if needed
             await _busService.UpdateBusAsync(numberPlate, bus);
             return NoContent();

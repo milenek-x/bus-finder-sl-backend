@@ -37,16 +37,28 @@ namespace BusFinderBackend.Services
 
         public async Task AddBusAsync(Bus bus)
         {
-            // Check if the staff ID is valid
-            if (string.IsNullOrEmpty(bus.StaffID))
+            // Check if the driver ID is valid
+            if (string.IsNullOrEmpty(bus.DriverId))
             {
-                throw new ArgumentException("StaffID cannot be null or empty.");
+                throw new ArgumentException("DriverId cannot be null or empty.");
             }
 
-            var staff = await _staffService.GetStaffByIdAsync(bus.StaffID);
-            if (staff == null)
+            var driver = await _staffService.GetStaffByIdAsync(bus.DriverId);
+            if (driver == null)
             {
-                throw new ArgumentException("Invalid StaffID: The specified staff does not exist.");
+                throw new ArgumentException("Invalid DriverId: The specified driver does not exist.");
+            }
+
+            // Check if the conductor ID is valid
+            if (string.IsNullOrEmpty(bus.ConductorId))
+            {
+                throw new ArgumentException("ConductorId cannot be null or empty.");
+            }
+
+            var conductor = await _staffService.GetStaffByIdAsync(bus.ConductorId);
+            if (conductor == null)
+            {
+                throw new ArgumentException("Invalid ConductorId: The specified conductor does not exist.");
             }
 
             // Check if the bus route number is valid
@@ -79,16 +91,28 @@ namespace BusFinderBackend.Services
                 throw new ArgumentException("Bus not found.");
             }
 
-            // Check if the staff ID is valid
-            if (string.IsNullOrEmpty(bus.StaffID))
+            // Check if the driver ID is valid
+            if (string.IsNullOrEmpty(bus.DriverId))
             {
-                throw new ArgumentException("StaffID cannot be null or empty.");
+                throw new ArgumentException("DriverId cannot be null or empty.");
             }
 
-            var staff = await _staffService.GetStaffByIdAsync(bus.StaffID);
-            if (staff == null)
+            var driver = await _staffService.GetStaffByIdAsync(bus.DriverId);
+            if (driver == null)
             {
-                throw new ArgumentException("Invalid StaffID: The specified staff does not exist.");
+                throw new ArgumentException("Invalid DriverId: The specified driver does not exist.");
+            }
+
+            // Check if the conductor ID is valid
+            if (string.IsNullOrEmpty(bus.ConductorId))
+            {
+                throw new ArgumentException("ConductorId cannot be null or empty.");
+            }
+
+            var conductor = await _staffService.GetStaffByIdAsync(bus.ConductorId);
+            if (conductor == null)
+            {
+                throw new ArgumentException("Invalid ConductorId: The specified conductor does not exist.");
             }
 
             // Check if the bus route number is valid
@@ -105,7 +129,8 @@ namespace BusFinderBackend.Services
 
             // Update the bus properties
             existingBus.BusType = bus.BusType;
-            existingBus.StaffID = bus.StaffID;
+            existingBus.DriverId = bus.DriverId;
+            existingBus.ConductorId = bus.ConductorId;
             existingBus.BusRouteNumber = bus.BusRouteNumber;
 
             await _busRepository.UpdateBusAsync(numberPlate, existingBus);
