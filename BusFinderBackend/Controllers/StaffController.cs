@@ -260,6 +260,26 @@ namespace BusFinderBackend.Controllers
             }
         }
 
+        [HttpPost("upload-image")]
+        public async Task<IActionResult> UploadImage(IFormFile file)
+        {
+            if (file == null || file.Length == 0)
+            {
+                return BadRequest("No file uploaded.");
+            }
+
+            try
+            {
+                var link = await _staffService.UploadImageAsync(file);
+                return Ok(new { link });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error uploading image.");
+                return StatusCode(500, new { error = "Failed to upload image.", message = ex.Message });
+            }
+        }
+
         [HttpGet("get-id-by-email/{email}")]
         public async Task<IActionResult> GetStaffIdByEmail(string email)
         {

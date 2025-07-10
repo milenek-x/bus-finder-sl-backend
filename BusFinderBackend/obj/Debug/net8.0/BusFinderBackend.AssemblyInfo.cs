@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("BusFinderBackend")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+f0767b7bafd99349c2faef8224d82031269ea244")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+e4c4af90eae26cc642f37d93d5e02cf6c63dc147")]
 [assembly: System.Reflection.AssemblyProductAttribute("BusFinderBackend")]
 [assembly: System.Reflection.AssemblyTitleAttribute("BusFinderBackend")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

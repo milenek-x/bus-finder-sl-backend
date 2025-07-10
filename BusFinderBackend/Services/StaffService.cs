@@ -7,6 +7,7 @@ using Microsoft.Extensions.Logging;
 using System; // For Exception
 using FirebaseAdmin.Auth; // For FirebaseAuth
 using System.IO;
+using Microsoft.AspNetCore.Http; // For IFormFile
 
 namespace BusFinderBackend.Services
 {
@@ -274,6 +275,24 @@ namespace BusFinderBackend.Services
         {
             var staff = await _staffRepository.GetStaffByEmailAsync(email);
             return staff?.StaffId; // Return the staff ID or null if not found
+        }
+
+        public async Task<string> UploadImageAsync(IFormFile imageFile)
+        {
+            if (imageFile == null || imageFile.Length == 0)
+            {
+                throw new ArgumentException("File is empty or null.", nameof(imageFile));
+            }
+
+            // Save the image to a temporary location before uploading
+            var tempFilePath = Path.Combine(Path.GetTempPath(), $"staff_image_{DateTime.UtcNow.Ticks}.jpg");
+            using (var stream = new FileStream(tempFilePath, FileMode.Create))
+            {
+                await imageFile.CopyToAsync(stream);
+            }
+
+            // Use the UploadImageTutorialAsync method to upload the image
+            return await _driveImageService.UploadImageTutorialAsync(tempFilePath);
         }
     }
 }
