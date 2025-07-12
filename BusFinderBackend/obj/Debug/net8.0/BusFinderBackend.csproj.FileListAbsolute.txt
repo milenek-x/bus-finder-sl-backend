@@ -54,3 +54,10 @@ E:\FinalYearProject\bus-finder-sl-backend\BusFinderBackend\obj\Debug\net8.0\BusF
 E:\FinalYearProject\bus-finder-sl-backend\BusFinderBackend\obj\Debug\net8.0\BusFinderBackend.genruntimeconfig.cache
 E:\FinalYearProject\bus-finder-sl-backend\BusFinderBackend\obj\Debug\net8.0\ref\BusFinderBackend.dll
 E:\FinalYearProject\bus-finder-sl-backend\BusFinderBackend\bin\Debug\net8.0\Google.Apis.Drive.v3.dll
+E:\FinalYearProject\bus-finder-sl-backend\BusFinderBackend\bin\Debug\net8.0\Microsoft.Extensions.DependencyInjection.Abstractions.dll
+E:\FinalYearProject\bus-finder-sl-backend\BusFinderBackend\bin\Debug\net8.0\Microsoft.Extensions.Diagnostics.Abstractions.dll
+E:\FinalYearProject\bus-finder-sl-backend\BusFinderBackend\bin\Debug\net8.0\Microsoft.Extensions.Hosting.Abstractions.dll
+E:\FinalYearProject\bus-finder-sl-backend\BusFinderBackend\bin\Debug\net8.0\Microsoft.Extensions.Logging.Abstractions.dll
+E:\FinalYearProject\bus-finder-sl-backend\BusFinderBackend\bin\Debug\net8.0\Microsoft.Extensions.ObjectPool.dll
+E:\FinalYearProject\bus-finder-sl-backend\BusFinderBackend\bin\Debug\net8.0\Microsoft.Extensions.Options.dll
+E:\FinalYearProject\bus-finder-sl-backend\BusFinderBackend\bin\Debug\net8.0\System.Net.WebSockets.WebSocketProtocol.dll

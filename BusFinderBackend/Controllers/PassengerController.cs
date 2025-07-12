@@ -8,6 +8,8 @@ using Microsoft.Extensions.Logging;
 using FirebaseAdmin.Auth;
 using Microsoft.AspNetCore.Http;
 using System.IO;
+using BusFinderBackend.Hubs;
+using Microsoft.AspNetCore.SignalR;
 
 namespace BusFinderBackend.Controllers
 {
@@ -19,17 +21,20 @@ namespace BusFinderBackend.Controllers
         private readonly IConfiguration _configuration;
         private readonly EmailService _emailService;
         private readonly ILogger<PassengerController> _logger;
+        private readonly IHubContext<BusHub> _hubContext;
 
         public PassengerController(
             PassengerService passengerService,
             IConfiguration configuration,
             EmailService emailService,
-            ILogger<PassengerController> logger)
+            ILogger<PassengerController> logger,
+            IHubContext<BusHub> hubContext)
         {
             _passengerService = passengerService;
             _configuration = configuration;
             _emailService = emailService;
             _logger = logger;
+            _hubContext = hubContext;
         }
 
         [HttpGet]
@@ -207,6 +212,11 @@ namespace BusFinderBackend.Controllers
         public async Task<IActionResult> UpdateLocation(string passengerId, [FromBody] PassengerLocationUpdateRequest request)
         {
             await _passengerService.UpdateLocationAsync(passengerId, request.Latitude, request.Longitude);
+            // Send the CORRECT SignalR message with actual coordinates
+            await _hubContext.Clients.All.SendAsync("PassengerLocationUpdated", 
+                passengerId, 
+                request.Latitude, 
+                request.Longitude);
             return Ok(new { message = "Location updated." });
         }
 

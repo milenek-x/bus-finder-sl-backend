@@ -7,6 +7,10 @@ using System.Text;
 using Microsoft.Extensions.Configuration;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Linq; // Added for Select and ToList
+using System; // Added for Console.WriteLine
+using Microsoft.AspNetCore.SignalR;
+using BusFinderBackend.Hubs; // Adjust the namespace as per your project structure
 
 namespace BusFinderBackend.Services
 {
@@ -16,13 +20,15 @@ namespace BusFinderBackend.Services
         private readonly StaffService _staffService;
         private readonly BusRouteRepository _busRouteRepository;
         private readonly IConfiguration _configuration;
+        private readonly IHubContext<BusHub> _hubContext;
 
-        public BusService(BusRepository busRepository, StaffService staffService, BusRouteRepository busRouteRepository, IConfiguration configuration)
+        public BusService(BusRepository busRepository, StaffService staffService, BusRouteRepository busRouteRepository, IConfiguration configuration, IHubContext<BusHub> hubContext)
         {
             _busRepository = busRepository;
             _staffService = staffService;
             _busRouteRepository = busRouteRepository;
             _configuration = configuration;
+            _hubContext = hubContext;
         }
 
         public async Task<List<Bus>> GetAllBusesAsync()
@@ -190,6 +196,34 @@ namespace BusFinderBackend.Services
             }
         }
 
+        public async Task<string> GetGeoJSONBusesAsync()
+        {
+            var buses = await _busRepository.GetAllBusesAsync();
+            var geoJson = new
+            {
+                type = "FeatureCollection",
+                features = buses.Select(bus => new
+                {
+                    type = "Feature",
+                    geometry = new
+                    {
+                        type = "Point",
+                        coordinates = new[] { bus.CurrentLocationLongitude ?? 0, bus.CurrentLocationLatitude ?? 0 }
+                    },
+                    properties = new
+                    {
+                        bus.NumberPlate,
+                        bus.BusType,
+                        bus.DriverId,
+                        bus.ConductorId,
+                        bus.BusRouteNumber
+                    }
+                }).ToList()
+            };
+
+            return JsonSerializer.Serialize(geoJson);
+        }
+
         // Method to call Google Maps Geolocation API
         private async Task<(double latitude, double longitude)?> GetBusLocationFromGoogleMapsAsync(string numberPlate)
         {
@@ -244,6 +278,14 @@ namespace BusFinderBackend.Services
 
             [JsonPropertyName("lng")]
             public double Longitude { get; set; }
+        }
+
+        public async Task UpdateBusLocation(string busId, string newLocation)
+        {
+            // Logic to update bus location in the database
+
+            // Notify clients about the bus location update
+            await _hubContext.Clients.All.SendAsync("ReceiveBusUpdate", $"Bus {busId} location updated to {newLocation}");
         }
     }
 } 

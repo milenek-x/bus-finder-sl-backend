@@ -21,9 +21,10 @@ namespace BusFinderBackend.Services
             _configuration = configuration;
         }
 
-        public Task<List<BusStop>> GetAllBusStopsAsync()
+        public async Task<List<BusStop>> GetAllBusStopsAsync()
         {
-            return _busStopRepository.GetAllBusStopsAsync();
+            var busStops = await _busStopRepository.GetAllBusStopsAsync();
+            return busStops;
         }
 
         public Task<BusStop?> GetBusStopByNameAsync(string stopName)
@@ -110,6 +111,37 @@ namespace BusFinderBackend.Services
         public async Task<List<BusStop>> SearchBusStopsByPartialNameAsync(string partialName)
         {
             return await _busStopRepository.SearchBusStopsByPartialNameAsync(partialName);
+        }
+
+        public async Task<string> GetGeoJSONBusStopsAsync()
+        {
+            var busStops = await GetAllBusStopsAsync();
+            var geoJson = new
+            {
+                type = "FeatureCollection",
+                features = new List<object>()
+            };
+
+            foreach (var stop in busStops)
+            {
+                var feature = new
+                {
+                    type = "Feature",
+                    geometry = new
+                    {
+                        type = "Point",
+                        coordinates = new[] { stop.StopLongitude, stop.StopLatitude }
+                    },
+                    properties = new
+                    {
+                        name = stop.StopName,
+                        id = stop.StopName // or any unique identifier
+                    }
+                };
+                geoJson.features.Add(feature);
+            }
+
+            return JsonSerializer.Serialize(geoJson);
         }
     }
 }

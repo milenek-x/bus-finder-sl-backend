@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using System.Text.Json;
 
 namespace BusFinderBackend.Controllers
 {
@@ -71,6 +72,13 @@ namespace BusFinderBackend.Controllers
 
             await _busRouteService.DeleteBusRouteAsync(routeNumber);
             return NoContent();
+        }
+
+        [HttpGet("geojson")]
+        public async Task<ActionResult<string>> GetGeoJSONBusRoutes()
+        {
+            var geoJson = await _busRouteService.GetGeoJSONBusRoutesAsync();
+            return Ok(geoJson);
         }
     }
 }

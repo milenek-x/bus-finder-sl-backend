@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Bus & Passenger Tracker</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+            background: #f0f2f5;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            margin: 0;
+            font-size: 2em;
+        }
+        
+        .status {
+            padding: 15px 20px;
+            background: #e8f4f8;
+            border-left: 4px solid #2196F3;
+            margin: 20px;
+            border-radius: 5px;
+        }
+        
+        .status.connected {
+            background: #e8f5e8;
+            border-left-color: #4CAF50;
+        }
+        
+        .status.disconnected {
+            background: #ffeaa7;
+            border-left-color: #fdcb6e;
+        }
+        
+        #map {
+            height: 500px;
+            width: 100%;
+            margin: 20px 0;
+        }
+        
+        .lists-container {
+            display: flex;
+            gap: 20px;
+            padding: 20px;
+            background: #f8f9fa;
+        }
+        
+        .list-section {
+            flex: 1;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .list-section h3 {
+            margin-top: 0;
+            color: #333;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+        }
+        
+        .bus-item, .passenger-item {
+            background: white;
+            margin: 10px 0;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .bus-item {
+            border-left: 4px solid #00ff00;
+        }
+        
+        .passenger-item {
+            border-left: 4px solid #ff6b35;
+        }
+        
+        .item-info {
+            flex: 1;
+        }
+        
+        .item-id {
+            font-weight: bold;
+            color: #333;
+            font-size: 1.1em;
+        }
+        
+        .item-location {
+            color: #666;
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+        
+        .item-status {
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            background: #e8f5e8;
+            color: #2e7d32;
+        }
+        
+        .controls {
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 0 10px;
+            font-size: 1em;
+        }
+        
+        .btn:hover {
+            background: #5a67d8;
+        }
+        
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        
+        .btn.passenger-btn {
+            background: #ff6b35;
+        }
+        
+        .btn.passenger-btn:hover {
+            background: #e55a2b;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚌 Live Bus & Passenger Tracker</h1>
+            <p>Real-time bus and passenger locations using SignalR</p>
+        </div>
+        
+        <div id="connectionStatus" class="status">
+            Connecting to server...
+        </div>
+        
+        <div id="map"></div>
+        
+        <div class="controls">
+            <button id="simulateBtn" class="btn">Start Bus Simulation</button>
+            <button id="stopBtn" class="btn" disabled>Stop Bus Simulation</button>
+            <button id="simulatePassengerBtn" class="btn passenger-btn">Start Passenger Simulation</button>
+            <button id="stopPassengerBtn" class="btn passenger-btn" disabled>Stop Passenger Simulation</button>
+            <button id="centerBtn" class="btn">Center Map on Colombo</button>
+        </div>
+        
+        <div class="lists-container">
+            <div class="list-section">
+                <h3>🚌 Active Buses</h3>
+                <div id="busList"></div>
+            </div>
+            <div class="list-section">
+                <h3>🚶 Active Passengers</h3>
+                <div id="passengerList"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SignalR Client Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/6.0.1/signalr.min.js"></script>
+    
+    <!-- Google Maps API -->
+    <script>
+        let map;
+        let busMarkers = {};
+        let passengerMarkers = {};
+        let connection;
+        let simulationInterval;
+        let passengerSimulationInterval;
+        let isSimulating = false;
+        let isPassengerSimulating = false;
+        
+        // Initialize Google Maps
+        function initMap() {
+            // Center on Colombo, Sri Lanka
+            const colombo = { lat: 6.9271, lng: 79.8612 };
+            
+            map = new google.maps.Map(document.getElementById("map"), {
+                zoom: 12,
+                center: colombo,
+                mapTypeId: 'roadmap',
+                styles: [
+                    {
+                        featureType: "poi",
+                        stylers: [{ visibility: "off" }]
+                    },
+                    {
+                        featureType: "transit",
+                        stylers: [{ visibility: "off" }]
+                    }
+                ]
+            });
+            
+            // Initialize SignalR connection
+            initSignalR();
+        }
+        
+        // Initialize SignalR Connection
+        function initSignalR() {
+            connection = new signalR.HubConnectionBuilder()
+                .withUrl("http://localhost:5176/busHub") // ← Change this to your actual server URL
+                .build();
+            
+            // Listen for bus location updates
+            connection.on("BusLocationUpdated", function (busId, latitude, longitude) {
+                console.log(`✅ REAL BUS UPDATE: Bus ${busId} updated to: ${latitude}, ${longitude}`);
+                updateBusMarker(busId, latitude, longitude);
+                updateBusList(busId, latitude, longitude);
+            });
+            
+            // Listen for passenger location updates
+            connection.on("PassengerLocationUpdated", function (passengerId, latitude, longitude) {
+                console.log(`✅ REAL PASSENGER UPDATE: Passenger ${passengerId} updated to: ${latitude}, ${longitude}`);
+                updatePassengerMarker(passengerId, latitude, longitude);
+                updatePassengerList(passengerId, latitude, longitude);
+            });
+            
+            // Also listen for the old message format (for debugging)
+            connection.on("ReceiveBusUpdate", function (message) {
+                console.log(`📢 Old format message: ${message}`);
+            });
+            
+            // Connection events
+            connection.onclose(function () {
+                updateConnectionStatus("disconnected", "❌ Disconnected from server");
+            });
+            
+            connection.onreconnected(function () {
+                updateConnectionStatus("connected", "✅ Reconnected to server");
+            });
+            
+            // Start the connection
+            connection.start().then(function () {
+                updateConnectionStatus("connected", "✅ Connected to server - Ready to receive bus and passenger updates!");
+                console.log("SignalR Connected!");
+                // Display the connection ID
+                const connectionId = connection.connectionId;
+                updateConnectionStatus("connected", `✅ Connected to server - Connection ID: ${connectionId}`);
+            }).catch(function (err) {
+                updateConnectionStatus("disconnected", "❌ Failed to connect to server");
+                console.error("SignalR Connection Error: ", err);
+            });
+        }
+        
+        // Update bus marker on map
+        function updateBusMarker(busId, latitude, longitude) {
+            const position = { lat: latitude, lng: longitude };
+            
+            if (busMarkers[busId]) {
+                // Update existing marker
+                busMarkers[busId].setPosition(position);
+            } else {
+                // Create new marker
+                busMarkers[busId] = new google.maps.Marker({
+                    position: position,
+                    map: map,
+                    title: `Bus ${busId}`,
+                    icon: {
+                        url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(`
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+                                <rect width="32" height="32" fill="#00ff00" rx="6"/>
+                                <text x="16" y="20" font-family="Arial, sans-serif" font-size="10" font-weight="bold" text-anchor="middle" fill="#000">🚌</text>
+                            </svg>
+                        `),
+                        scaledSize: new google.maps.Size(32, 32)
+                    }
+                });
+                
+                // Add info window
+                const infoWindow = new google.maps.InfoWindow({
+                    content: `
+                        <div style="padding: 10px;">
+                            <h4>🚌 Bus ${busId}</h4>
+                            <p><strong>Location:</strong> ${latitude.toFixed(4)}, ${longitude.toFixed(4)}</p>
+                            <p><strong>Status:</strong> <span style="color: green;">● Active</span></p>
+                        </div>
+                    `
+                });
+                
+                busMarkers[busId].addListener('click', function() {
+                    infoWindow.open(map, busMarkers[busId]);
+                });
+            }
+        }
+        
+        // Update passenger marker on map (1:1 copy of bus functionality)
+        function updatePassengerMarker(passengerId, latitude, longitude) {
+            const position = { lat: latitude, lng: longitude };
+            
+            if (passengerMarkers[passengerId]) {
+                // Update existing marker
+                passengerMarkers[passengerId].setPosition(position);
+            } else {
+                // Create new marker
+                passengerMarkers[passengerId] = new google.maps.Marker({
+                    position: position,
+                    map: map,
+                    title: `Passenger ${passengerId}`,
+                    icon: {
+                        url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(`
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+                                <rect width="32" height="32" fill="#ff6b35" rx="6"/>
+                                <text x="16" y="20" font-family="Arial, sans-serif" font-size="10" font-weight="bold" text-anchor="middle" fill="#fff">🚶</text>
+                            </svg>
+                        `),
+                        scaledSize: new google.maps.Size(32, 32)
+                    }
+                });
+                
+                // Add info window
+                const infoWindow = new google.maps.InfoWindow({
+                    content: `
+                        <div style="padding: 10px;">
+                            <h4>🚶 Passenger ${passengerId}</h4>
+                            <p><strong>Location:</strong> ${latitude.toFixed(4)}, ${longitude.toFixed(4)}</p>
+                            <p><strong>Status:</strong> <span style="color: green;">● Active</span></p>
+                        </div>
+                    `
+                });
+                
+                passengerMarkers[passengerId].addListener('click', function() {
+                    infoWindow.open(map, passengerMarkers[passengerId]);
+                });
+            }
+        }
+        
+        // Update bus list
+        function updateBusList(busId, latitude, longitude) {
+            const busList = document.getElementById('busList');
+            let busItem = document.getElementById(`bus-${busId}`);
+            
+            if (!busItem) {
+                busItem = document.createElement('div');
+                busItem.id = `bus-${busId}`;
+                busItem.className = 'bus-item';
+                busList.appendChild(busItem);
+            }
+            
+            busItem.innerHTML = `
+                <div class="item-info">
+                    <div class="item-id">🚌 Bus ${busId}</div>
+                    <div class="item-location">📍 ${latitude.toFixed(4)}, ${longitude.toFixed(4)}</div>
+                </div>
+                <div class="item-status">● Active</div>
+            `;
+        }
+        
+        // Update passenger list (1:1 copy of bus functionality)
+        function updatePassengerList(passengerId, latitude, longitude) {
+            const passengerList = document.getElementById('passengerList');
+            let passengerItem = document.getElementById(`passenger-${passengerId}`);
+            
+            if (!passengerItem) {
+                passengerItem = document.createElement('div');
+                passengerItem.id = `passenger-${passengerId}`;
+                passengerItem.className = 'passenger-item';
+                passengerList.appendChild(passengerItem);
+            }
+            
+            passengerItem.innerHTML = `
+                <div class="item-info">
+                    <div class="item-id">🚶 Passenger ${passengerId}</div>
+                    <div class="item-location">📍 ${latitude.toFixed(4)}, ${longitude.toFixed(4)}</div>
+                </div>
+                <div class="item-status">● Active</div>
+            `;
+        }
+        
+        // Update connection status
+        function updateConnectionStatus(status, message) {
+            const statusElement = document.getElementById('connectionStatus');
+            statusElement.className = `status ${status}`;
+            statusElement.textContent = message;
+        }
+        
+        // Simulate bus movement for testing
+        function startSimulation() {
+            if (isSimulating) return;
+            
+            isSimulating = true;
+            document.getElementById('simulateBtn').disabled = true;
+            document.getElementById('stopBtn').disabled = false;
+            
+            // Create some test buses
+            const testBuses = ['ABC123', 'DEF456', 'GHI789'];
+            
+            simulationInterval = setInterval(() => {
+                testBuses.forEach(busId => {
+                    // Generate random coordinates around Colombo
+                    const lat = 6.9271 + (Math.random() - 0.5) * 0.02;
+                    const lng = 79.8612 + (Math.random() - 0.5) * 0.02;
+                    
+                    // Simulate receiving update from SignalR
+                    updateBusMarker(busId, lat, lng);
+                    updateBusList(busId, lat, lng);
+                });
+            }, 3000); // Update every 3 seconds
+        }
+        
+        function stopSimulation() {
+            if (!isSimulating) return;
+            
+            isSimulating = false;
+            document.getElementById('simulateBtn').disabled = false;
+            document.getElementById('stopBtn').disabled = true;
+            
+            if (simulationInterval) {
+                clearInterval(simulationInterval);
+            }
+        }
+        
+        // Simulate passenger movement for testing (1:1 copy of bus functionality)
+        function startPassengerSimulation() {
+            if (isPassengerSimulating) return;
+            
+            isPassengerSimulating = true;
+            document.getElementById('simulatePassengerBtn').disabled = true;
+            document.getElementById('stopPassengerBtn').disabled = false;
+            
+            // Create some test passengers
+            const testPassengers = ['P001', 'P002', 'P003', 'P004', 'P005'];
+            
+            passengerSimulationInterval = setInterval(() => {
+                testPassengers.forEach(passengerId => {
+                    // Generate random coordinates around Colombo
+                    const lat = 6.9271 + (Math.random() - 0.5) * 0.02;
+                    const lng = 79.8612 + (Math.random() - 0.5) * 0.02;
+                    
+                    // Simulate receiving update from SignalR
+                    updatePassengerMarker(passengerId, lat, lng);
+                    updatePassengerList(passengerId, lat, lng);
+                });
+            }, 3000); // Update every 3 seconds
+        }
+        
+        function stopPassengerSimulation() {
+            if (!isPassengerSimulating) return;
+            
+            isPassengerSimulating = false;
+            document.getElementById('simulatePassengerBtn').disabled = false;
+            document.getElementById('stopPassengerBtn').disabled = true;
+            
+            if (passengerSimulationInterval) {
+                clearInterval(passengerSimulationInterval);
+            }
+        }
+        
+        function centerMap() {
+            const colombo = { lat: 6.9271, lng: 79.8612 };
+            map.setCenter(colombo);
+            map.setZoom(12);
+        }
+        
+        // Event listeners
+        document.getElementById('simulateBtn').addEventListener('click', startSimulation);
+        document.getElementById('stopBtn').addEventListener('click', stopSimulation);
+        document.getElementById('simulatePassengerBtn').addEventListener('click', startPassengerSimulation);
+        document.getElementById('stopPassengerBtn').addEventListener('click', stopPassengerSimulation);
+        document.getElementById('centerBtn').addEventListener('click', centerMap);
+        
+        // Initialize everything when page loads
+        window.onload = function() {
+            console.log("Page loaded, initializing map...");
+        };
+    </script>
+    
+    <!-- Load Google Maps API -->
+    <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAN397HAlCveqhw7idZNJHdhSidLl9rIKA&callback=initMap"></script>
+</body>
+</html>

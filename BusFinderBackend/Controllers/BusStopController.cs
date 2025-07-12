@@ -4,6 +4,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using System.Text.Json; // Added for JsonSerializer
+using System; // Added for Console.WriteLine
 
 namespace BusFinderBackend.Controllers
 {
@@ -92,6 +94,13 @@ namespace BusFinderBackend.Controllers
             if (busStops == null || busStops.Count == 0)
                 return NotFound(new { message = "No bus stops found matching the search criteria." });
             return Ok(busStops);
+        }
+
+        [HttpGet("geojson")]
+        public async Task<ActionResult<string>> GetGeoJSONBusStops()
+        {
+            var geoJson = await _busStopService.GetGeoJSONBusStopsAsync();
+            return Ok(geoJson);
         }
     }
 }

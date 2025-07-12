@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bus Stops Map Tester</title>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            margin: 20px;
+            background-color: #f4f7f6;
+            color: #333;
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        #jsonInput {
+            width: calc(100% - 40px);
+            height: 250px;
+            margin-bottom: 15px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+            font-family: monospace;
+            font-size: 14px;
+            resize: vertical;
+        }
+        #renderButton {
+            display: block;
+            width: 200px;
+            padding: 12px 20px;
+            margin: 0 auto 20px auto;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        #renderButton:hover {
+            background-color: #2980b9;
+            transform: translateY(-2px);
+        }
+        #renderButton:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        #map {
+            height: 600px;
+            width: 100%;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            background-color: #e0e0e0;
+        }
+        .message-box {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+            border-radius: 5px;
+            padding: 15px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-weight: bold;
+        }
+        .info-box {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+            border-radius: 5px;
+            padding: 15px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <h1>Bus Stops Map Tester</h1>
+
+    <textarea id="jsonInput" placeholder="Paste your map configuration JSON here...">
+    </textarea>
+    <button id="renderButton">Render Map</button>
+    <div id="map"></div>
+
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAN397HAlCveqhw7idZNJHdhSidLl9rIKA" async defer></script>
+
+    <script>
+        let map;
+        let directionsService;
+        let directionsRenderer;
+
+        function showMessage(message, type = 'error') {
+            const mapContainer = document.getElementById('map');
+            const messageBox = document.createElement('div');
+            messageBox.className = type === 'error' ? 'message-box' : 'info-box';
+            messageBox.textContent = message;
+            mapContainer.parentNode.insertBefore(messageBox, mapContainer);
+            setTimeout(() => messageBox.remove(), 5000);
+        }
+
+        // Function to create road-following route using Directions API
+        function createRoadFollowingRoute(coordinates, renderOptions) {
+            if (coordinates.length < 2) return;
+
+            const directionsService = new google.maps.DirectionsService();
+            
+            // Convert coordinates to waypoints
+            const waypoints = coordinates.slice(1, -1).map(coord => ({
+                location: { lat: coord[1], lng: coord[0] },
+                stopover: true
+            }));
+
+            const request = {
+                origin: { lat: coordinates[0][1], lng: coordinates[0][0] },
+                destination: { lat: coordinates[coordinates.length - 1][1], lng: coordinates[coordinates.length - 1][0] },
+                waypoints: waypoints,
+                travelMode: google.maps.TravelMode.DRIVING,
+                optimizeWaypoints: false, // Keep original order for bus routes
+                avoidHighways: false,
+                avoidTolls: false
+            };
+
+            directionsService.route(request, (result, status) => {
+                if (status === 'OK') {
+                    // Create a custom polyline from the directions result
+                    const route = result.routes[0];
+                    const path = [];
+                    
+                    route.legs.forEach(leg => {
+                        leg.steps.forEach(step => {
+                            step.path.forEach(point => {
+                                path.push(point);
+                            });
+                        });
+                    });
+
+                    const polyline = new google.maps.Polyline({
+                        path: path,
+                        geodesic: false, // False since we're following roads
+                        strokeColor: renderOptions.strokeColor || '#FF0000',
+                        strokeOpacity: renderOptions.strokeOpacity || 1.0,
+                        strokeWeight: renderOptions.strokeWidth || 3
+                    });
+
+                    polyline.setMap(map);
+                } else {
+                    console.warn('Directions request failed due to ' + status);
+                    // Fall back to straight-line polyline if directions fail
+                    createStraightLineRoute(coordinates, renderOptions);
+                }
+            });
+        }
+
+        // Fallback function for straight-line routes
+        function createStraightLineRoute(coordinates, renderOptions) {
+            const path = coordinates.map(coord => ({
+                lat: coord[1],
+                lng: coord[0]
+            }));
+
+            const polyline = new google.maps.Polyline({
+                path: path,
+                geodesic: true,
+                strokeColor: renderOptions.strokeColor || '#FF0000',
+                strokeOpacity: renderOptions.strokeOpacity || 0.6,
+                strokeWeight: renderOptions.strokeWidth || 2,
+                strokeDashArray: '10,5' // Dashed line to indicate it's not following roads
+            });
+
+            polyline.setMap(map);
+        }
+
+        // Enhanced function to snap coordinates to roads (requires Roads API)
+        function snapToRoads(coordinates, callback) {
+            // This requires Google Roads API (separate from Maps API)
+            // You would need to enable Roads API and make requests to:
+            // https://roads.googleapis.com/v1/snapToRoads
+            
+            // For now, we'll use the Directions API approach above
+            callback(coordinates);
+        }
+
+        function renderMapFromJson(config) {
+            document.getElementById('map').innerHTML = '';
+
+            if (typeof google === 'undefined' || typeof google.maps === 'undefined') {
+                showMessage("Google Maps API not loaded. Please check your API key and network connection.");
+                return;
+            }
+
+            try {
+                map = new google.maps.Map(document.getElementById("map"), {
+                    zoom: config.initialCameraPosition.zoom,
+                    center: {
+                        lat: config.initialCameraPosition.latitude,
+                        lng: config.initialCameraPosition.longitude
+                    },
+                    mapTypeId: config.mapOptions.mapType,
+                    zoomControl: config.mapOptions.zoomControlsEnabled,
+                    fullscreenControl: false,
+                    rotateGestures: config.mapOptions.rotateGesturesEnabled,
+                    scrollwheel: config.mapOptions.scrollGesturesEnabled,
+                    tilt: config.mapOptions.tiltGesturesEnabled,
+                    gestureHandling: 'cooperative',
+                    styles: config.mapOptions.styles
+                });
+
+                // Initialize directions service
+                directionsService = new google.maps.DirectionsService();
+
+                config.layers.forEach(layer => {
+                    if (layer.type === 'geojson') {
+                        fetch(layer.sourceUrl)
+                            .then(response => {
+                                if (!response.ok) {
+                                    throw new Error(`HTTP error! status: ${response.status} for ${layer.sourceUrl}`);
+                                }
+                                return response.json();
+                            })
+                            .then(data => {
+                                if (data.features && Array.isArray(data.features)) {
+                                    const markers = [];
+                                    let routeCount = 0;
+                                    
+                                    data.features.forEach(feature => {
+                                        if (feature.geometry && feature.geometry.coordinates) {
+                                            const geometryType = feature.geometry.type;
+                                            
+                                            if (geometryType === 'Point') {
+                                                const coordinates = feature.geometry.coordinates;
+                                                const latLng = new google.maps.LatLng(coordinates[1], coordinates[0]);
+                                                
+                                                const marker = new google.maps.Marker({
+                                                    position: latLng,
+                                                    icon: layer.renderOptions.markerIconUrl || null,
+                                                    map: map
+                                                });
+                                                markers.push(marker);
+                                            } 
+                                            else if (geometryType === 'LineString') {
+                                                const coordinates = feature.geometry.coordinates;
+                                                
+                                                // Use road-following route if enabled in config
+                                                if (layer.renderOptions.followRoads !== false) {
+                                                    // Add delay to avoid rate limiting
+                                                    setTimeout(() => {
+                                                        createRoadFollowingRoute(coordinates, layer.renderOptions);
+                                                    }, routeCount * 100); // 100ms delay between requests
+                                                    routeCount++;
+                                                } else {
+                                                    createStraightLineRoute(coordinates, layer.renderOptions);
+                                                }
+                                            }
+                                            else if (geometryType === 'MultiLineString') {
+                                                feature.geometry.coordinates.forEach(lineCoords => {
+                                                    if (layer.renderOptions.followRoads !== false) {
+                                                        setTimeout(() => {
+                                                            createRoadFollowingRoute(lineCoords, layer.renderOptions);
+                                                        }, routeCount * 100);
+                                                        routeCount++;
+                                                    } else {
+                                                        createStraightLineRoute(lineCoords, layer.renderOptions);
+                                                    }
+                                                });
+                                            }
+                                        }
+                                    });
+
+                                    if (layer.renderOptions.clusterMarkers && markers.length > 0) {
+                                        console.warn("Marker clustering is enabled but MarkerClustererPlus library is not included or implemented. Markers are added individually.");
+                                    }
+                                    
+                                    console.log(`Layer ${layer.id}: Rendered ${markers.length} markers and processed routes`);
+                                    
+                                    if (routeCount > 0) {
+                                        showMessage(`Processing ${routeCount} routes to follow roads. This may take a moment...`, 'info');
+                                    }
+                                } else {
+                                    console.warn(`GeoJSON data for ${layer.id} does not contain a 'features' array.`);
+                                }
+                            })
+                            .catch(error => console.error(`Error fetching GeoJSON for ${layer.id}:`, error));
+                    } else if (layer.type === 'realtime') {
+                        console.warn(`Realtime layer "${layer.id}" with SignalRHubUrl "${layer.signalRHubUrl}" needs client-side SignalR implementation.`);
+                    }
+                });
+
+            } catch (error) {
+                console.error("Error initializing map:", error);
+                showMessage(`Error rendering map: ${error.message}. Please check your JSON configuration.`);
+            }
+        }
+
+        document.getElementById('renderButton').addEventListener('click', () => {
+            const jsonInput = document.getElementById('jsonInput').value;
+            try {
+                const config = JSON.parse(jsonInput);
+                const currentScript = document.querySelector('script[src^="https://maps.googleapis.com/maps/api/js"]');
+                const newApiKey = config.googleMapsApiKey;
+                if (currentScript && !currentScript.src.includes(`key=${newApiKey}`)) {
+                    currentScript.remove();
+                    const newScript = document.createElement('script');
+                    newScript.src = `https://maps.googleapis.com/maps/api/js?key=${newApiKey}&callback=initMapCallback`;
+                    newScript.async = true;
+                    newScript.defer = true;
+                    document.head.appendChild(newScript);
+                    window.initMapCallback = () => {
+                        renderMapFromJson(config);
+                        delete window.initMapCallback;
+                    };
+                } else {
+                    renderMapFromJson(config);
+                }
+
+            } catch (error) {
+                console.error("Invalid JSON input:", error);
+                showMessage("Invalid JSON input. Please ensure your JSON is correctly formatted.");
+            }
+        });
+    </script>
+</body>
+</html>

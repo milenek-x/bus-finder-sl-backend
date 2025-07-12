@@ -4,6 +4,8 @@ using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System;
+using Microsoft.AspNetCore.SignalR;
+using BusFinderBackend.Hubs;
 
 namespace BusFinderBackend.Controllers
 {
@@ -13,9 +15,12 @@ namespace BusFinderBackend.Controllers
     {
         private readonly BusService _busService;
 
-        public BusController(BusService busService)
+        private readonly IHubContext<BusHub> _hubContext;
+
+        public BusController(BusService busService, IHubContext<BusHub> hubContext)
         {
             _busService = busService;
+            _hubContext = hubContext;
         }
 
         [HttpGet]
@@ -69,7 +74,15 @@ namespace BusFinderBackend.Controllers
         [HttpPut("{numberPlate}/location")]
         public async Task<IActionResult> UpdateCurrentLocation(string numberPlate, [FromBody] LocationUpdateRequest request)
         {
+            // Update the database first
             await _busService.UpdateCurrentLocationAsync(numberPlate, request.CurrentLocationLatitude, request.CurrentLocationLongitude);
+
+            // Send the CORRECT SignalR message with actual coordinates
+            await _hubContext.Clients.All.SendAsync("BusLocationUpdated", 
+                numberPlate, 
+                request.CurrentLocationLatitude, 
+                request.CurrentLocationLongitude);
+
             return NoContent();
         }
 
@@ -115,6 +128,13 @@ namespace BusFinderBackend.Controllers
             {
                 return StatusCode(500, new { error = "Failed to update location.", message = ex.Message });
             }
+        }
+
+        [HttpGet("geojson")]
+        public async Task<IActionResult> GetGeoJSONBuses()
+        {
+            var geoJson = await _busService.GetGeoJSONBusesAsync();
+            return Ok(geoJson);
         }
     }
 

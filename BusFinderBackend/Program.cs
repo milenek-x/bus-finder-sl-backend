@@ -7,6 +7,10 @@ using Google.Apis.Auth.OAuth2;
 using Microsoft.Extensions.Configuration; // Ensure this is present for IConfiguration
 using System.IO;
 using Microsoft.OpenApi.Models;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.AspNetCore.SignalR;
+using Microsoft.AspNetCore.Builder;
+using BusFinderBackend.Hubs;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,7 +18,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowSpecificOrigin",
-        builder => builder.WithOrigins("http://localhost:3000")
+        builder => builder.WithOrigins("http://localhost:3000", "http://localhost:8000")
                           .AllowAnyMethod()
                           .AllowAnyHeader());
 });
@@ -50,6 +54,8 @@ FirebaseApp.Create(new AppOptions()
 
 // Add services to the container.
 builder.Services.AddControllers();
+builder.Services.AddHttpClient(); // Register HttpClient
+builder.Services.AddSignalR(); // Register SignalR
 
 // Initialize Firestore using FirebaseInit and register as singleton
 // FirebaseInit already uses GOOGLE_APPLICATION_CREDENTIALS_JSON, so this is consistent
@@ -76,6 +82,10 @@ builder.Services.AddScoped<BusShiftService>();
 builder.Services.AddScoped<PassengerRepository>();
 builder.Services.AddScoped<PassengerService>();
 builder.Services.AddScoped<DriveImageService>();
+builder.Services.AddScoped<MapService>();
+
+// Register SignalR services
+builder.Services.AddSignalR();
 
 // Add Swagger/OpenAPI support (optional, but common for APIs)
 builder.Services.AddEndpointsApiExplorer();
@@ -97,10 +107,18 @@ app.UseSwaggerUI(c =>
 app.UseHttpsRedirection();
 
 // Use CORS
-app.UseCors("AllowSpecificOrigin");
+app.UseCors(builder => builder
+    .WithOrigins("http://localhost:3000", "http://localhost:8000")
+    .AllowAnyMethod()
+    .AllowAnyHeader()
+    .SetIsOriginAllowed(origin => true) // Allow any origin
+    .AllowCredentials()); // Allow credentials
 
-app.UseAuthorization();
-
+app.UseRouting();
+app.UseAuthorization(); // Ensure this is between UseRouting and MapHub
 app.MapControllers();
+
+// Map the SignalR hub
+app.MapHub<BusHub>("/busHub");
 
 app.Run();

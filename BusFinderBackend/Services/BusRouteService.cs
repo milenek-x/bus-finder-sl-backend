@@ -13,10 +13,12 @@ namespace BusFinderBackend.Services
     {
         private readonly BusRouteRepository _busRouteRepository;
         private readonly IConfiguration _configuration;
+        private readonly BusStopRepository _busStopRepository;
 
-        public BusRouteService(BusRouteRepository busRouteRepository, IConfiguration configuration)
+        public BusRouteService(BusRouteRepository busRouteRepository, BusStopRepository busStopRepository, IConfiguration configuration)
         {
-            _busRouteRepository = busRouteRepository;
+            _busRouteRepository = busRouteRepository ?? throw new ArgumentNullException(nameof(busRouteRepository));
+            _busStopRepository = busStopRepository ?? throw new ArgumentNullException(nameof(busStopRepository));
             _configuration = configuration;
         }
 
@@ -53,5 +55,50 @@ namespace BusFinderBackend.Services
             return _busRouteRepository.DeleteBusRouteAsync(routeNumber);
         }
 
+        public async Task<string> GetGeoJSONBusRoutesAsync()
+        {
+            var busRoutes = await GetAllBusRoutesAsync();
+            var geoJson = new
+            {
+                type = "FeatureCollection",
+                features = new List<object>()
+            };
+
+            foreach (var route in busRoutes)
+            {
+                var feature = new
+                {
+                    type = "Feature",
+                    geometry = new
+                    {
+                        type = "LineString",
+                        coordinates = await GetRouteCoordinatesAsync(route.RouteStops)
+                    },
+                    properties = new
+                    {
+                        name = route.RouteName,
+                        id = route.RouteNumber // or any unique identifier
+                    }
+                };
+                geoJson.features.Add(feature);
+            }
+
+            return JsonSerializer.Serialize(geoJson);
+        }
+
+        private async Task<List<double[]>> GetRouteCoordinatesAsync(List<string>? routeStops)
+        {
+            if (routeStops == null) return new List<double[]>(); // Handle null case
+            var coordinates = new List<double[]>();
+            foreach (var stop in routeStops)
+            {
+                var busStop = await _busStopRepository.GetBusStopByNameAsync(stop);
+                if (busStop != null)
+                {
+                    coordinates.Add(new double[] { busStop.StopLongitude, busStop.StopLatitude });
+                }
+            }
+            return coordinates;
+        }
     }
 }

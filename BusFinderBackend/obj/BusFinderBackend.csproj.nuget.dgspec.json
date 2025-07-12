@@ -71,6 +71,10 @@
               "target": "Package",
               "version": "[8.0.5, )"
             },
+            "Microsoft.AspNetCore.SignalR": {
+              "target": "Package",
+              "version": "[1.2.0, )"
+            },
             "Swashbuckle.AspNetCore": {
               "target": "Package",
               "version": "[9.0.1, )"
