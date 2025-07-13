@@ -2,6 +2,7 @@ using BusFinderBackend.Model;
 using BusFinderBackend.Repositories;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using System.Linq;
 
 namespace BusFinderBackend.Services
 {
@@ -45,6 +46,12 @@ namespace BusFinderBackend.Services
                 busShift.ShiftId = await _busShiftRepository.GenerateNextShiftIdAsync();
             }
 
+            // Handle Number Plate
+            if (string.IsNullOrEmpty(busShift.NumberPlate))
+            {
+                throw new ArgumentException("Number Plate cannot be null or empty.");
+            }
+
             await _busShiftRepository.AddBusShiftAsync(busShift);
         }
 
@@ -68,6 +75,13 @@ namespace BusFinderBackend.Services
         public async Task DeleteBusShiftAsync(string shiftId)
         {
             await _busShiftRepository.DeleteBusShiftAsync(shiftId);
+        }
+
+        public async Task<List<BusShift>> GetBusShiftsByRouteNumberAsync(string routeNumber)
+        {
+            var allBusShifts = await GetAllBusShiftsAsync();
+            var matchingShifts = allBusShifts.Where(shift => shift.RouteNo == routeNumber).ToList();
+            return matchingShifts;
         }
     }
 } 

@@ -19,5 +19,8 @@ namespace BusFinderBackend.Model
 
         [FirestoreProperty]
         public string? RouteNo { get; set; }
+
+        [FirestoreProperty]
+        public string? NumberPlate { get; set; } // New field for Number Plate
     }
 } 

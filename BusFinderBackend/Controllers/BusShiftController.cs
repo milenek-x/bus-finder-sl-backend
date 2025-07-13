@@ -33,6 +33,15 @@ namespace BusFinderBackend.Controllers
             return Ok(busShift);
         }
 
+        [HttpGet("by-route/{routeNumber}")]
+        public async Task<ActionResult<List<BusShift>>> GetBusShiftsByRouteNumber(string routeNumber)
+        {
+            var shifts = await _busShiftService.GetBusShiftsByRouteNumberAsync(routeNumber);
+            if (shifts == null || shifts.Count == 0)
+                return NotFound();
+            return Ok(shifts);
+        }
+
         [HttpPost]
         public async Task<IActionResult> AddBusShift([FromBody] BusShift busShift)
         {
