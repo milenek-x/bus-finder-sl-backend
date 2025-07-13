@@ -40,9 +40,9 @@ namespace BusFinderBackend.Controllers
         }
 
         [HttpGet("passenger-view-live-bus-route")] // Endpoint for passenger view live bus route configuration
-        public IActionResult GetPassengerViewLiveBusRouteConfiguration()
+        public IActionResult GetPassengerViewLiveBusRouteConfiguration(string busRoute, string bus, string passenger)
         {
-            var config = _mapService.GetPassengerViewLiveBusRouteConfiguration();
+            var config = _mapService.GetPassengerViewLiveBusRouteConfiguration(busRoute, bus, passenger);
             return Ok(config);
         }
     }

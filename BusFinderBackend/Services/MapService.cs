@@ -10,12 +10,15 @@ namespace BusFinderBackend.Services
         private readonly IConfiguration _configuration;
         private readonly BusService _busService; // Add BusService
         private readonly BusRouteService _busRouteService; // Add BusRouteService
+        private readonly PassengerService _passengerService; // Add PassengerService
+        
 
-        public MapService(IConfiguration configuration, BusService busService, BusRouteService busRouteService)
+        public MapService(IConfiguration configuration, BusService busService, BusRouteService busRouteService, PassengerService passengerService)
         {
             _configuration = configuration;
             _busService = busService; // Initialize BusService
             _busRouteService = busRouteService; // Initialize BusRouteService
+            _passengerService = passengerService; // Initialize PassengerService
         }
 
         // Method to get initial camera position
@@ -56,7 +59,7 @@ namespace BusFinderBackend.Services
         }
 
         // Method to get layers
-        private List<object> GetLayers(bool includeAllBusStops, bool includeAllBusRoutes, bool includeLiveAllBusLocations, bool includeLivePassengerLocation, bool includeSingleBusRoute, bool includeSingleBusLocation, bool includeAllBusesInSingleRoute, bool includeFamousPlaces, string? busRoute = null, string? bus = null)
+        private List<object> GetLayers(bool includeAllBusStops, bool includeAllBusRoutes, bool includeLiveAllBusLocations, bool includeLivePassengerLocation, bool includeSingleBusRoute, bool includeSingleBusLocation, bool includeAllBusesInSingleRoute, bool includeFamousPlaces, string? busRoute = null, string? bus = null, string? passenger = null)
         {
             var layers = new List<object>();
 
@@ -106,13 +109,13 @@ namespace BusFinderBackend.Services
                 });
             }
 
-            if (includeLivePassengerLocation)
+            if (includeLivePassengerLocation && !string.IsNullOrEmpty(passenger))
             {
                 layers.Add(new
                 {
                     id = "passengerLayer",
                     type = "realtime",
-                    signalRHubUrl = "/passengerHub",
+                    signalRHubUrl = "/passengerHub/{passenger}",
                     renderOptions = new
                     {
                         markerIconUrl = "https://placehold.co/32x32/000000/FFFFFF?text=ME",
@@ -247,14 +250,47 @@ namespace BusFinderBackend.Services
             };
         }
 
-        public object GetPassengerViewLiveBusRouteConfiguration()
+        public object GetPassengerViewLiveBusRouteConfiguration(string busRoute, string bus, string passenger)
         {
+            // Fetch the specific bus and bus route details from the repository or service
+            var busDetails = _busService.GetBusByNumberPlateAsync(bus).Result; // Assuming this method exists
+            var busRouteDetails = _busRouteService.GetBusRouteByNumberAsync(busRoute).Result; // Assuming this method exists
+            var passengerDetails = _passengerService.GetPassengerByIdAsync(passenger).Result; // Assuming this method exists
+
+            // Check if the bus, bus route, and passenger exist
+            if (busDetails == null)
+            {
+                return new
+                {
+                    error = "Bus not found.",
+                    message = $"No bus found with the number plate: {bus}"
+                };
+            }
+
+            if (busRouteDetails == null)
+            {
+                return new
+                {
+                    error = "Bus route not found.",
+                    message = $"No bus route found with the number: {busRoute}"
+                };
+            }
+
+            if (passengerDetails == null)
+            {
+                return new
+                {
+                    error = "Passenger not found.",
+                    message = $"No passenger found with the ID: {passenger}"
+                };
+            }
+
             return new
             {
                 googleMapsApiKey = _configuration["GoogleMaps:ApiKey"],
                 initialCameraPosition = GetInitialCameraPosition(),
                 mapOptions = GetCommonMapOptions(),
-                layers = GetLayers(true, false, false, true, true, true, false, true) // Include all bus stops, passenger location, single bus location route, and famous places
+                layers = GetLayers(true, false, false, true, true, true, false, true, busRoute, bus, passenger) // Pass the busRoute, bus, and passenger
             };
         }
     }
