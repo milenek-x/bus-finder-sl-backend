@@ -3,6 +3,7 @@ using BusFinderBackend.Services;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using BusFinderBackend.DTO;
 
 namespace BusFinderBackend.Controllers
 {
@@ -33,15 +34,6 @@ namespace BusFinderBackend.Controllers
             return Ok(busShift);
         }
 
-        [HttpGet("by-route/{routeNumber}")]
-        public async Task<ActionResult<List<BusShift>>> GetBusShiftsByRouteNumber(string routeNumber)
-        {
-            var shifts = await _busShiftService.GetBusShiftsByRouteNumberAsync(routeNumber);
-            if (shifts == null || shifts.Count == 0)
-                return NotFound();
-            return Ok(shifts);
-        }
-
         [HttpPost]
         public async Task<IActionResult> AddBusShift([FromBody] BusShift busShift)
         {
@@ -61,6 +53,15 @@ namespace BusFinderBackend.Controllers
         {
             await _busShiftService.DeleteBusShiftAsync(shiftId);
             return NoContent();
+        }
+
+        [HttpGet("by-route/{routeNumber}/future")]
+        public async Task<ActionResult<List<BusShiftDto>>> GetFutureBusShiftsByRouteNumber(string routeNumber, string date, string time)
+        {
+            var shifts = await _busShiftService.GetBusShiftsByRouteNumberAsync(routeNumber, date, time);
+            if (shifts == null || shifts.Count == 0)
+                return NotFound();
+            return Ok(shifts);
         }
     }
 } 

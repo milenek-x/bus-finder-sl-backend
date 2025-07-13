@@ -3,6 +3,8 @@ using BusFinderBackend.Repositories;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Linq;
+using System;
+using BusFinderBackend.DTO; // Update the using directive
 
 namespace BusFinderBackend.Services
 {
@@ -77,11 +79,61 @@ namespace BusFinderBackend.Services
             await _busShiftRepository.DeleteBusShiftAsync(shiftId);
         }
 
-        public async Task<List<BusShift>> GetBusShiftsByRouteNumberAsync(string routeNumber)
+        public async Task<List<BusShiftDto>> GetBusShiftsByRouteNumberAsync(string routeNumber, string date, string time)
         {
             var allBusShifts = await GetAllBusShiftsAsync();
-            var matchingShifts = allBusShifts.Where(shift => shift.RouteNo == routeNumber).ToList();
+            var matchingShifts = allBusShifts
+                .Where(shift => shift.RouteNo == routeNumber && IsWithinFutureDate(shift.Date ?? "", date))
+                .Select(shift => new BusShiftDto
+                {
+                    StartTime = shift.StartTime ?? "Unknown", // Handle possible null
+                    EndTime = shift.EndTime ?? "Unknown", // Handle possible null
+                    TravelTime = CalculateTravelTime(shift.StartTime, shift.EndTime),
+                    Date = shift.Date // Map the Date property
+                })
+                .Where(shift => IsFutureShift(shift.EndTime ?? "Unknown", shift.Date ?? "", date, time))
+                .ToList();
             return matchingShifts;
+        }
+
+        private TimeSpan CalculateTravelTime(string? startTime, string? endTime)
+        {
+            if (DateTime.TryParse(startTime, out var start) && DateTime.TryParse(endTime, out var end))
+            {
+                return end - start;
+            }
+            return TimeSpan.Zero;
+        }
+
+        private bool IsFutureShift(string endTime, string shiftDate, string inputDate, string inputTime)
+        {
+            // Parse the input date and time
+            var inputDateTimeString = $"{inputDate} {inputTime}";
+            if (!DateTime.TryParse(inputDateTimeString, out var inputDateTime))
+            {
+                return false;
+            }
+
+            // Parse the shift end date and time
+            var shiftEndDateTimeString = $"{shiftDate} {endTime}";
+            if (!DateTime.TryParse(shiftEndDateTimeString, out var shiftEndDateTime))
+            {
+                return false;
+            }
+
+            // Check if shift end time is after the input time
+            return shiftEndDateTime > inputDateTime;
+        }
+
+        private bool IsWithinFutureDate(string shiftDate, string inputDate)
+        {
+            if (!DateTime.TryParse(shiftDate, out var shiftDateTime) || !DateTime.TryParse(inputDate, out var inputDateTime))
+            {
+                return false;
+            }
+
+            var twoDaysFromInput = inputDateTime.AddDays(2);
+            return shiftDateTime.Date >= inputDateTime.Date && shiftDateTime.Date <= twoDaysFromInput.Date;
         }
     }
 } 
