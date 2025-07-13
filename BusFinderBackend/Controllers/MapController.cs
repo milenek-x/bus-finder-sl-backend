@@ -58,5 +58,15 @@ namespace BusFinderBackend.Controllers
             var config = _mapService.GetPassengerViewLiveBusRouteConfiguration(busRoute, bus, passenger);
             return Ok(config);
         }
+
+        [HttpGet("passenger-view-live-location")]
+        [SwaggerOperation(Summary = "Get passenger view configuration for live location only.")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(400)]
+        public IActionResult GetPassengerViewLiveLocationConfiguration(string passenger)
+        {
+            var config = _mapService.GetPassengerViewLiveLocation(passenger);
+            return Ok(config);
+        }
     }
 }

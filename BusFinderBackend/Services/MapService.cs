@@ -293,5 +293,29 @@ namespace BusFinderBackend.Services
                 layers = GetLayers(true, false, false, true, true, true, false, true, busRoute, bus, passenger) // Pass the busRoute, bus, and passenger
             };
         }
+
+        public object GetPassengerViewLiveLocation(string passenger)
+        {
+            // Fetch the passenger details from the service
+            var passengerDetails = _passengerService.GetPassengerByIdAsync(passenger).Result; // Assuming this method exists
+
+            // Check if the passenger exists
+            if (passengerDetails == null)
+            {
+                return new
+                {
+                    error = "Passenger not found.",
+                    message = $"No passenger found with the ID: {passenger}"
+                };
+            }
+
+            return new
+            {
+                googleMapsApiKey = _configuration["GoogleMaps:ApiKey"],
+                initialCameraPosition = GetInitialCameraPosition(),
+                mapOptions = GetCommonMapOptions(),
+                layers = GetLayers(false, false, false, true, false, false, false, false, null, null, passenger) // Only include live passenger location
+            };
+        }
     }
 }
