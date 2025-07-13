@@ -89,5 +89,14 @@ namespace BusFinderBackend.Controllers
                 return NotFound();
             return Ok(geoJson);
         }
+
+        [HttpGet("by-stops")]
+        public async Task<ActionResult<List<BusRoute>>> GetBusRoutesByStops(string startingPoint, string endingPoint)
+        {
+            var routes = await _busRouteService.GetBusRoutesByStopsAsync(startingPoint, endingPoint);
+            if (routes == null || routes.Count == 0)
+                return NotFound();
+            return Ok(routes);
+        }
     }
 }

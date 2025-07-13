@@ -119,6 +119,22 @@ namespace BusFinderBackend.Services
             return JsonSerializer.Serialize(geoJson);
         }
 
+        public async Task<List<BusRoute>> GetBusRoutesByStopsAsync(string startingPoint, string endingPoint)
+        {
+            var allBusRoutes = await GetAllBusRoutesAsync();
+            var matchingRoutes = new List<BusRoute>();
+
+            foreach (var route in allBusRoutes)
+            {
+                if (route.RouteStops != null && route.RouteStops.Contains(startingPoint) && route.RouteStops.Contains(endingPoint))
+                {
+                    matchingRoutes.Add(route);
+                }
+            }
+
+            return matchingRoutes;
+        }
+
         private async Task<List<double[]>> GetRouteCoordinatesAsync(List<string>? routeStops)
         {
             if (routeStops == null) return new List<double[]>(); // Handle null case
