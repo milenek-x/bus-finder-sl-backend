@@ -86,6 +86,39 @@ namespace BusFinderBackend.Services
             return JsonSerializer.Serialize(geoJson);
         }
 
+        public async Task<string?> GetGeoJSONBusRouteAsync(string routeNumber)
+        {
+            var busRoute = await GetBusRouteByNumberAsync(routeNumber);
+            if (busRoute == null)
+            {
+                return null;
+            }
+
+            var geoJson = new
+            {
+                type = "FeatureCollection",
+                features = new List<object>
+                {
+                    new
+                    {
+                        type = "Feature",
+                        geometry = new
+                        {
+                            type = "LineString",
+                            coordinates = await GetRouteCoordinatesAsync(busRoute.RouteStops)
+                        },
+                        properties = new
+                        {
+                            name = busRoute.RouteName,
+                            id = busRoute.RouteNumber
+                        }
+                    }
+                }
+            };
+
+            return JsonSerializer.Serialize(geoJson);
+        }
+
         private async Task<List<double[]>> GetRouteCoordinatesAsync(List<string>? routeStops)
         {
             if (routeStops == null) return new List<double[]>(); // Handle null case

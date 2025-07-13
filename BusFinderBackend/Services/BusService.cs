@@ -287,5 +287,34 @@ namespace BusFinderBackend.Services
             // Notify clients about the bus location update
             await _hubContext.Clients.All.SendAsync("ReceiveBusUpdate", $"Bus {busId} location updated to {newLocation}");
         }
+
+        public async Task<string?> GetSingleBusGeoJSONAsync(string numberPlate)
+        {
+            var bus = await _busRepository.GetBusByNumberPlateAsync(numberPlate);
+            if (bus == null)
+            {
+                return null;
+            }
+
+            var geoJson = new
+            {
+                type = "Feature",
+                geometry = new
+                {
+                    type = "Point",
+                    coordinates = new[] { bus.CurrentLocationLongitude ?? 0, bus.CurrentLocationLatitude ?? 0 }
+                },
+                properties = new
+                {
+                    bus.NumberPlate,
+                    bus.BusType,
+                    bus.DriverId,
+                    bus.ConductorId,
+                    bus.BusRouteNumber
+                }
+            };
+
+            return JsonSerializer.Serialize(geoJson);
+        }
     }
 } 

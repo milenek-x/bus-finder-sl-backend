@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using BusFinderBackend.Services;
 using Microsoft.Extensions.Logging;
+using BusFinderBackend.Model;
 
 namespace BusFinderBackend.Controllers
 {
@@ -32,9 +33,9 @@ namespace BusFinderBackend.Controllers
         }
 
         [HttpGet("staff-view-live-bus-shift")] // Endpoint for staff view live bus shift configuration
-        public IActionResult GetStaffViewLiveBusShiftConfiguration()
+        public IActionResult GetStaffViewLiveBusShiftConfiguration(string busRoute, string bus)
         {
-            var config = _mapService.GetStaffViewLiveBusShiftConfiguration();
+            var config = _mapService.GetStaffViewLiveBusShiftConfiguration(busRoute, bus);
             return Ok(config);
         }
 

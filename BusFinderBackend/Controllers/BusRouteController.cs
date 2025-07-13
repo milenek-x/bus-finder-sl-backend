@@ -80,5 +80,14 @@ namespace BusFinderBackend.Controllers
             var geoJson = await _busRouteService.GetGeoJSONBusRoutesAsync();
             return Ok(geoJson);
         }
+
+        [HttpGet("single/geojson/{routeNumber}")]
+        public async Task<ActionResult<string>> GetGeoJSONBusRoute(string routeNumber)
+        {
+            var geoJson = await _busRouteService.GetGeoJSONBusRouteAsync(routeNumber);
+            if (geoJson == null)
+                return NotFound();
+            return Ok(geoJson);
+        }
     }
 }

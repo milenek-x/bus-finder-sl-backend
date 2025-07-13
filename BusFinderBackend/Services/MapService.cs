@@ -1,16 +1,21 @@
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using Microsoft.Extensions.Configuration;
+using BusFinderBackend.Services; // Ensure this is included for BusService and BusRouteService
 
 namespace BusFinderBackend.Services
 {
     public class MapService
     {
         private readonly IConfiguration _configuration;
+        private readonly BusService _busService; // Add BusService
+        private readonly BusRouteService _busRouteService; // Add BusRouteService
 
-        public MapService(IConfiguration configuration)
+        public MapService(IConfiguration configuration, BusService busService, BusRouteService busRouteService)
         {
             _configuration = configuration;
+            _busService = busService; // Initialize BusService
+            _busRouteService = busRouteService; // Initialize BusRouteService
         }
 
         // Method to get initial camera position
@@ -51,7 +56,7 @@ namespace BusFinderBackend.Services
         }
 
         // Method to get layers
-        private List<object> GetLayers(bool includeAllBusStops, bool includeAllBusRoutes, bool includeLiveAllBusLocations, bool includeLivePassengerLocation, bool includeSingleBusRoute, bool includeSingleBusLocation, bool includeAllBusesInSingleRoute, bool includeFamousPlaces)
+        private List<object> GetLayers(bool includeAllBusStops, bool includeAllBusRoutes, bool includeLiveAllBusLocations, bool includeLivePassengerLocation, bool includeSingleBusRoute, bool includeSingleBusLocation, bool includeAllBusesInSingleRoute, bool includeFamousPlaces, string? busRoute = null, string? bus = null)
         {
             var layers = new List<object>();
 
@@ -119,13 +124,13 @@ namespace BusFinderBackend.Services
                 });
             }
 
-            if (includeSingleBusRoute)
+            if (includeSingleBusRoute && !string.IsNullOrEmpty(busRoute))
             {
                 layers.Add(new
                 {
                     id = "singleBusRouteLayer",
                     type = "geojson",
-                    sourceUrl = "http://localhost:5176/api/busroute/single/geojson",
+                    sourceUrl = $"http://localhost:5176/api/busroute/single/geojson/{busRoute}",
                     renderOptions = new
                     {
                         strokeColor = "#FF0000",
@@ -135,7 +140,7 @@ namespace BusFinderBackend.Services
                 });
             }
 
-            if (includeSingleBusLocation)
+            if (includeSingleBusLocation && !string.IsNullOrEmpty(bus))
             {
                 layers.Add(new
                 {
@@ -206,14 +211,39 @@ namespace BusFinderBackend.Services
             };
         }
 
-        public object GetStaffViewLiveBusShiftConfiguration()
+        public object GetStaffViewLiveBusShiftConfiguration(string busRoute, string bus)
         {
+            // Fetch the specific bus and bus route details from the repository or service
+            var busDetails = _busService.GetBusByNumberPlateAsync(bus).Result; // Assuming this method exists
+            var busRouteDetails = _busRouteService.GetBusRouteByNumberAsync(busRoute).Result; // Assuming this method exists
+
+            // Check if the bus and bus route exist
+            if (busDetails == null)
+            {
+                // Handle the error for bus not found
+                return new
+                {
+                    error = "Bus not found.",
+                    message = $"No bus found with the number plate: {bus}"
+                };
+            }
+
+            if (busRouteDetails == null)
+            {
+                // Handle the error for bus route not found
+                return new
+                {
+                    error = "Bus route not found.",
+                    message = $"No bus route found with the number: {busRoute}"
+                };
+            }
+
             return new
             {
                 googleMapsApiKey = _configuration["GoogleMaps:ApiKey"],
                 initialCameraPosition = GetInitialCameraPosition(),
                 mapOptions = GetCommonMapOptions(),
-                layers = GetLayers(true, false, false, false, true, true, false, false) // Include single bus location and selected bus route
+                layers = GetLayers(true, false, false, false, true, true, false, false, busRoute, bus) // Pass the busRoute and bus
             };
         }
 

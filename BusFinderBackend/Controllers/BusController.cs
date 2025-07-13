@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System;
 using Microsoft.AspNetCore.SignalR;
 using BusFinderBackend.Hubs;
+using System.Text.Json;
 
 namespace BusFinderBackend.Controllers
 {
@@ -134,6 +135,15 @@ namespace BusFinderBackend.Controllers
         public async Task<IActionResult> GetGeoJSONBuses()
         {
             var geoJson = await _busService.GetGeoJSONBusesAsync();
+            return Ok(geoJson);
+        }
+
+        [HttpGet("single/geojson/{numberPlate}")]
+        public async Task<IActionResult> GetSingleBusGeoJSON(string numberPlate)
+        {
+            var geoJson = await _busService.GetSingleBusGeoJSONAsync(numberPlate);
+            if (geoJson == null)
+                return NotFound();
             return Ok(geoJson);
         }
     }
