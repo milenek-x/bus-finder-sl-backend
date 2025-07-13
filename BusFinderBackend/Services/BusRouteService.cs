@@ -46,12 +46,92 @@ namespace BusFinderBackend.Services
             // Here you can add any additional logic if needed, such as checking for duplicates
 
             await _busRouteRepository.AddBusRouteAsync(busRoute);
+
+            // --- Add return route automatically ---
+            if (busRoute.RouteStops != null && busRoute.RouteStops.Count > 1)
+            {
+                // Reverse the stops
+                var reversedStops = new List<string>(busRoute.RouteStops);
+                reversedStops.Reverse();
+
+                // Reverse the route name (swap start and end)
+                string? reversedName = null;
+                if (!string.IsNullOrEmpty(busRoute.RouteName) && busRoute.RouteName.Contains("-"))
+                {
+                    var parts = busRoute.RouteName.Split('-');
+                    if (parts.Length == 2)
+                    {
+                        reversedName = parts[1].Trim() + " - " + parts[0].Trim();
+                    }
+                    else
+                    {
+                        reversedName = busRoute.RouteName + " (Return)";
+                    }
+                }
+                else
+                {
+                    reversedName = busRoute.RouteName + " (Return)";
+                }
+
+                var returnRoute = new BusRoute
+                {
+                    RouteNumber = busRoute.RouteNumber + "R",
+                    RouteName = reversedName,
+                    RouteStops = reversedStops
+                };
+
+                // Optional: Check if return route already exists
+                var existingReturnRoute = await _busRouteRepository.GetBusRouteByNumberAsync(returnRoute.RouteNumber);
+                if (existingReturnRoute == null)
+                {
+                    await _busRouteRepository.AddBusRouteAsync(returnRoute);
+                }
+            }
+            // --- End add return route ---
+
             return (true, null, null);
         }
 
-        public Task UpdateBusRouteAsync(string routeNumber, BusRoute busRoute)
+        public async Task UpdateBusRouteAsync(string routeNumber, BusRoute busRoute)
         {
-            return _busRouteRepository.UpdateBusRouteAsync(routeNumber, busRoute);
+            await _busRouteRepository.UpdateBusRouteAsync(routeNumber, busRoute);
+
+            // --- Update return route automatically ---
+            if (busRoute.RouteStops != null && busRoute.RouteStops.Count > 1)
+            {
+                // Reverse the stops
+                var reversedStops = new List<string>(busRoute.RouteStops);
+                reversedStops.Reverse();
+
+                // Reverse the route name (swap start and end)
+                string? reversedName = null;
+                if (!string.IsNullOrEmpty(busRoute.RouteName) && busRoute.RouteName.Contains("-"))
+                {
+                    var parts = busRoute.RouteName.Split('-');
+                    if (parts.Length == 2)
+                    {
+                        reversedName = parts[1].Trim() + " - " + parts[0].Trim();
+                    }
+                    else
+                    {
+                        reversedName = busRoute.RouteName + " (Return)";
+                    }
+                }
+                else
+                {
+                    reversedName = busRoute.RouteName + " (Return)";
+                }
+
+                var returnRoute = new BusRoute
+                {
+                    RouteNumber = busRoute.RouteNumber + "R",
+                    RouteName = reversedName,
+                    RouteStops = reversedStops
+                };
+
+                await _busRouteRepository.UpdateBusRouteAsync(returnRoute.RouteNumber, returnRoute);
+            }
+            // --- End update return route ---
         }
 
         public Task DeleteBusRouteAsync(string routeNumber)
