@@ -43,7 +43,8 @@ namespace BusFinderBackend.Services
                 return (false, "NO_ROUTE_NUMBER", "Bus route number must be provided.");
             }
 
-            // Here you can add any additional logic if needed, such as checking for duplicates
+            // Calculate and set the distance for the main route
+            busRoute.RouteDistance = await CalculateRouteDistanceAsync(busRoute.RouteStops);
 
             await _busRouteRepository.AddBusRouteAsync(busRoute);
 
@@ -77,7 +78,8 @@ namespace BusFinderBackend.Services
                 {
                     RouteNumber = busRoute.RouteNumber + "R",
                     RouteName = reversedName,
-                    RouteStops = reversedStops
+                    RouteStops = reversedStops,
+                    RouteDistance = await CalculateRouteDistanceAsync(reversedStops)
                 };
 
                 // Optional: Check if return route already exists
@@ -94,6 +96,9 @@ namespace BusFinderBackend.Services
 
         public async Task UpdateBusRouteAsync(string routeNumber, BusRoute busRoute)
         {
+            // Calculate and set the distance for the main route
+            busRoute.RouteDistance = await CalculateRouteDistanceAsync(busRoute.RouteStops);
+
             await _busRouteRepository.UpdateBusRouteAsync(routeNumber, busRoute);
 
             // --- Update return route automatically ---
@@ -126,7 +131,8 @@ namespace BusFinderBackend.Services
                 {
                     RouteNumber = busRoute.RouteNumber + "R",
                     RouteName = reversedName,
-                    RouteStops = reversedStops
+                    RouteStops = reversedStops,
+                    RouteDistance = await CalculateRouteDistanceAsync(reversedStops)
                 };
 
                 await _busRouteRepository.UpdateBusRouteAsync(returnRoute.RouteNumber, returnRoute);
@@ -237,6 +243,65 @@ namespace BusFinderBackend.Services
                 }
             }
             return coordinates;
+        }
+
+        /// <summary>
+        /// Calculates the total road distance (in kilometers) for a bus route by connecting all stops in order using the Google Maps Directions API.
+        /// </summary>
+        /// <param name="routeStops">List of stop names in order</param>
+        /// <returns>Total distance in kilometers, or null if calculation fails</returns>
+        public async Task<double?> CalculateRouteDistanceAsync(List<string>? routeStops)
+        {
+            if (routeStops == null || routeStops.Count < 2)
+                return null;
+
+            // Resolve coordinates for all stops
+            var coordinates = new List<(double lat, double lng)>();
+            foreach (var stopName in routeStops)
+            {
+                var stop = await _busStopRepository.GetBusStopByNameAsync(stopName);
+                if (stop == null)
+                    return null; // If any stop is missing, fail gracefully
+                coordinates.Add((stop.StopLatitude, stop.StopLongitude));
+            }
+
+            // Build Directions API request
+            var apiKey = _configuration["GoogleMaps:ApiKey"];
+            if (string.IsNullOrEmpty(apiKey))
+                return null;
+
+            var origin = $"{coordinates[0].lat},{coordinates[0].lng}";
+            var destination = $"{coordinates[^1].lat},{coordinates[^1].lng}";
+            var waypoints = coordinates.Count > 2
+                ? "waypoints=" + string.Join("|", coordinates.GetRange(1, coordinates.Count - 2).ConvertAll(c => $"{c.lat},{c.lng}"))
+                : string.Empty;
+
+            var url = $"https://maps.googleapis.com/maps/api/directions/json?origin={origin}&destination={destination}" +
+                      (waypoints != string.Empty ? $"&{waypoints}" : "") +
+                      $"&key={apiKey}";
+
+            using var httpClient = new HttpClient();
+            var response = await httpClient.GetAsync(url);
+            if (!response.IsSuccessStatusCode)
+                return null;
+
+            var json = await response.Content.ReadAsStringAsync();
+            using var doc = JsonDocument.Parse(json);
+            var root = doc.RootElement;
+            if (root.TryGetProperty("routes", out var routes) && routes.GetArrayLength() > 0)
+            {
+                var legs = routes[0].GetProperty("legs");
+                double totalMeters = 0;
+                foreach (var leg in legs.EnumerateArray())
+                {
+                    if (leg.TryGetProperty("distance", out var distance) && distance.TryGetProperty("value", out var value))
+                    {
+                        totalMeters += value.GetDouble();
+                    }
+                }
+                return totalMeters / 1000.0; // Convert to kilometers
+            }
+            return null;
         }
     }
 }

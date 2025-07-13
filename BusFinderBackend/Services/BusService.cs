@@ -316,5 +316,13 @@ namespace BusFinderBackend.Services
 
             return JsonSerializer.Serialize(geoJson);
         }
+
+        public async Task<List<Bus>> GetBusesByStaffIdAsync(string staffId)
+        {
+            var allBuses = await _busRepository.GetAllBusesAsync();
+            return allBuses
+                .Where(bus => bus.DriverId == staffId || bus.ConductorId == staffId)
+                .ToList();
+        }
     }
 } 

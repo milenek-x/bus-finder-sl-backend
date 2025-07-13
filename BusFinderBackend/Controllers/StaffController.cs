@@ -7,6 +7,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.Http;
 using System.IO;
+using Swashbuckle.AspNetCore.Annotations;
 
 namespace BusFinderBackend.Controllers
 {
@@ -32,6 +33,9 @@ namespace BusFinderBackend.Controllers
         }
 
         [HttpGet]
+        [SwaggerOperation(Summary = "Get all staff members.")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(400)]
         public async Task<ActionResult<List<Staff>>> GetAllStaff()
         {
             var staffList = await _staffService.GetAllStaffAsync();
@@ -39,6 +43,9 @@ namespace BusFinderBackend.Controllers
         }
 
         [HttpGet("{id}")]
+        [SwaggerOperation(Summary = "Get a staff member by ID.")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(400)]
         public async Task<ActionResult<Staff>> GetStaffById(string id)
         {
             var staff = await _staffService.GetStaffByIdAsync(id);
@@ -48,6 +55,9 @@ namespace BusFinderBackend.Controllers
         }
 
         [HttpPost]
+        [SwaggerOperation(Summary = "Add a new staff member.")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(400)]
         public async Task<IActionResult> AddStaff([FromBody] Staff staff)
         {
             _logger.LogInformation("AddStaff endpoint called with: {@Staff}", staff);
@@ -66,6 +76,9 @@ namespace BusFinderBackend.Controllers
         }
 
         [HttpPut("{id}")]
+        [SwaggerOperation(Summary = "Update a staff member by ID.")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(400)]
         public async Task<ActionResult> UpdateStaff(string id, [FromBody] Staff staff)
         {
             // Ensure the password is not included in the update
@@ -78,6 +91,9 @@ namespace BusFinderBackend.Controllers
         }
 
         [HttpDelete("{id}")]
+        [SwaggerOperation(Summary = "Delete a staff member by ID.")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(400)]
         public async Task<ActionResult> DeleteStaff(string id)
         {
             var existing = await _staffService.GetStaffByIdAsync(id);
@@ -89,6 +105,9 @@ namespace BusFinderBackend.Controllers
         }
 
         [HttpGet("role/{role}")]
+        [SwaggerOperation(Summary = "Get staff members by role.")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(400)]
         public async Task<ActionResult<List<Staff>>> GetStaffByRole(string role)
         {
             var staffList = await _staffService.GetStaffByRoleAsync(role);

@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Http;
 using System.IO;
 using BusFinderBackend.Hubs;
 using Microsoft.AspNetCore.SignalR;
+using Swashbuckle.AspNetCore.Annotations;
 
 namespace BusFinderBackend.Controllers
 {
@@ -38,6 +39,9 @@ namespace BusFinderBackend.Controllers
         }
 
         [HttpGet]
+        [SwaggerOperation(Summary = "Get all passengers.")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(400)]
         public async Task<ActionResult<List<Passenger>>> GetAllPassengers()
         {
             var passengers = await _passengerService.GetAllPassengersAsync();
@@ -45,6 +49,9 @@ namespace BusFinderBackend.Controllers
         }
 
         [HttpGet("{id}")]
+        [SwaggerOperation(Summary = "Get a passenger by ID.")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(400)]
         public async Task<ActionResult<Passenger>> GetPassengerById(string id)
         {
             var passenger = await _passengerService.GetPassengerByIdAsync(id);
@@ -54,6 +61,9 @@ namespace BusFinderBackend.Controllers
         }
 
         [HttpPost]
+        [SwaggerOperation(Summary = "Add a new passenger.")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(400)]
         public async Task<IActionResult> AddPassenger([FromBody] Passenger passenger)
         {
             if (string.IsNullOrEmpty(passenger.ProfileImageUrl))
@@ -74,6 +84,9 @@ namespace BusFinderBackend.Controllers
         }
 
         [HttpPut("{id}")]
+        [SwaggerOperation(Summary = "Update a passenger by ID.")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(400)]
         public async Task<ActionResult> UpdatePassenger(string id, [FromBody] Passenger passenger)
         {
             var existing = await _passengerService.GetPassengerByIdAsync(id);
@@ -85,6 +98,9 @@ namespace BusFinderBackend.Controllers
         }
 
         [HttpDelete("{id}")]
+        [SwaggerOperation(Summary = "Delete a passenger by ID.")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(400)]
         public async Task<ActionResult> DeletePassenger(string id)
         {
             await _passengerService.DeletePassengerAsync(id);
@@ -92,6 +108,9 @@ namespace BusFinderBackend.Controllers
         }
 
         [HttpPost("login")]
+        [SwaggerOperation(Summary = "Login a passenger.")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(400)]
         public async Task<IActionResult> Login([FromBody] LoginRequest request)
         {
             var firebaseSection = _configuration.GetSection("Firebase");

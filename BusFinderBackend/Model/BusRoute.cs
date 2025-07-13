@@ -13,5 +13,8 @@ namespace BusFinderBackend.Model
 
         [FirestoreProperty]
         public List<string>? RouteStops { get; set; } // List of StopNames
+
+        [FirestoreProperty]
+        public double? RouteDistance { get; set; } // Distance in kilometers (nullable)
     }   
 }

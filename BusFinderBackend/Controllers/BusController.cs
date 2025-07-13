@@ -7,6 +7,7 @@ using System;
 using Microsoft.AspNetCore.SignalR;
 using BusFinderBackend.Hubs;
 using System.Text.Json;
+using Swashbuckle.AspNetCore.Annotations;
 
 namespace BusFinderBackend.Controllers
 {
@@ -25,6 +26,9 @@ namespace BusFinderBackend.Controllers
         }
 
         [HttpGet]
+        [SwaggerOperation(Summary = "Get all buses.")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(400)]
         public async Task<ActionResult<List<Bus>>> GetAllBuses()
         {
             var buses = await _busService.GetAllBusesAsync();
@@ -32,6 +36,9 @@ namespace BusFinderBackend.Controllers
         }
 
         [HttpGet("{numberPlate}")]
+        [SwaggerOperation(Summary = "Get a bus by its number plate.")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(400)]
         public async Task<ActionResult<Bus?>> GetBusByNumberPlate(string numberPlate)
         {
             var bus = await _busService.GetBusByNumberPlateAsync(numberPlate);
@@ -41,6 +48,9 @@ namespace BusFinderBackend.Controllers
         }
 
         [HttpPost]
+        [SwaggerOperation(Summary = "Add a new bus.")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(400)]
         public async Task<IActionResult> AddBus([FromBody] Bus bus)
         {
             // Validate DriverId and ConductorId
@@ -59,6 +69,9 @@ namespace BusFinderBackend.Controllers
         }
 
         [HttpPut("{numberPlate}/capacity")]
+        [SwaggerOperation(Summary = "Update the capacity status of a bus.")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(400)]
         public async Task<IActionResult> UpdateBusCapacity(string numberPlate, [FromBody] BusCapacityUpdateRequest request)
         {
             await _busService.UpdateBusCapacityAsync(numberPlate, request.BusCapacity);
@@ -66,6 +79,9 @@ namespace BusFinderBackend.Controllers
         }
 
         [HttpPut("{numberPlate}/sos-status")]
+        [SwaggerOperation(Summary = "Update the SOS status of a bus.")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(400)]
         public async Task<IActionResult> UpdateSosStatus(string numberPlate, [FromBody] SosStatusUpdateRequest request)
         {
             await _busService.UpdateSosStatusAsync(numberPlate, request.SosStatus);
@@ -73,6 +89,9 @@ namespace BusFinderBackend.Controllers
         }
 
         [HttpPut("{numberPlate}/location")]
+        [SwaggerOperation(Summary = "Update the current location of a bus.")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(400)]
         public async Task<IActionResult> UpdateCurrentLocation(string numberPlate, [FromBody] LocationUpdateRequest request)
         {
             // Update the database first
@@ -88,6 +107,9 @@ namespace BusFinderBackend.Controllers
         }
 
         [HttpPut("{numberPlate}")]
+        [SwaggerOperation(Summary = "Update a bus by its number plate.")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(400)]
         public async Task<IActionResult> UpdateBus(string numberPlate, [FromBody] Bus bus)
         {
             // Validate DriverId and ConductorId
@@ -107,6 +129,9 @@ namespace BusFinderBackend.Controllers
         }
 
         [HttpDelete("{numberPlate}")]
+        [SwaggerOperation(Summary = "Delete a bus by its number plate.")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(400)]
         public async Task<IActionResult> DeleteBus(string numberPlate)
         {
             await _busService.DeleteBusAsync(numberPlate);
@@ -114,6 +139,9 @@ namespace BusFinderBackend.Controllers
         }
 
         [HttpPut("{numberPlate}/update-location-if-needed")]
+        [SwaggerOperation(Summary = "Update the location of a bus if needed.")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(400)]
         public async Task<IActionResult> UpdateLocationIfNeeded(string numberPlate)
         {
             try
@@ -132,6 +160,9 @@ namespace BusFinderBackend.Controllers
         }
 
         [HttpGet("geojson")]
+        [SwaggerOperation(Summary = "Get all buses as GeoJSON.")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(400)]
         public async Task<IActionResult> GetGeoJSONBuses()
         {
             var geoJson = await _busService.GetGeoJSONBusesAsync();
@@ -139,12 +170,25 @@ namespace BusFinderBackend.Controllers
         }
 
         [HttpGet("single/geojson/{numberPlate}")]
+        [SwaggerOperation(Summary = "Get a single bus as GeoJSON by number plate.")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(400)]
         public async Task<IActionResult> GetSingleBusGeoJSON(string numberPlate)
         {
             var geoJson = await _busService.GetSingleBusGeoJSONAsync(numberPlate);
             if (geoJson == null)
                 return NotFound();
             return Ok(geoJson);
+        }
+
+        [HttpGet("by-staff/{staffId}")]
+        [SwaggerOperation(Summary = "Get all buses where the given staffId matches either DriverId or ConductorId.")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(400)]
+        public async Task<ActionResult<List<Bus>>> GetBusesByStaffId(string staffId)
+        {
+            var buses = await _busService.GetBusesByStaffIdAsync(staffId);
+            return Ok(buses);
         }
     }
 

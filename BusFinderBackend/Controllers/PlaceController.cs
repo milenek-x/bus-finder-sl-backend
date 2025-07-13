@@ -3,6 +3,7 @@ using BusFinderBackend.Services;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Swashbuckle.AspNetCore.Annotations;
 
 namespace BusFinderBackend.Controllers
 {
@@ -18,6 +19,9 @@ namespace BusFinderBackend.Controllers
         }
 
         [HttpGet]
+        [SwaggerOperation(Summary = "Get all places.")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(400)]
         public async Task<ActionResult<List<Place>>> GetAllPlaces()
         {
             var places = await _placeService.GetAllPlacesAsync();
@@ -25,6 +29,9 @@ namespace BusFinderBackend.Controllers
         }
 
         [HttpGet("{id}")]
+        [SwaggerOperation(Summary = "Get a place by ID.")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(400)]
         public async Task<ActionResult<Place>> GetPlaceById(string id)
         {
             var place = await _placeService.GetPlaceByIdAsync(id);
@@ -34,6 +41,9 @@ namespace BusFinderBackend.Controllers
         }
 
         [HttpPost]
+        [SwaggerOperation(Summary = "Add a new place.")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(400)]
         public async Task<IActionResult> AddPlace([FromBody] Place place)
         {
             var result = await _placeService.AddPlaceAsync(place);
@@ -49,6 +59,9 @@ namespace BusFinderBackend.Controllers
         }
 
         [HttpPut("{id}")]
+        [SwaggerOperation(Summary = "Update a place by ID.")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(400)]
         public async Task<ActionResult> UpdatePlace(string id, [FromBody] Place place)
         {
             var existing = await _placeService.GetPlaceByIdAsync(id);
@@ -60,6 +73,9 @@ namespace BusFinderBackend.Controllers
         }
 
         [HttpDelete("{id}")]
+        [SwaggerOperation(Summary = "Delete a place by ID.")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(400)]
         public async Task<ActionResult> DeletePlace(string id)
         {
             var existing = await _placeService.GetPlaceByIdAsync(id);

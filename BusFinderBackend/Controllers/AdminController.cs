@@ -13,6 +13,7 @@ using System;
 using FirebaseAdmin.Auth;
 using Microsoft.Extensions.Logging;
 using System.IO;
+using Swashbuckle.AspNetCore.Annotations;
 
 namespace BusFinderBackend.Controllers
 {
@@ -34,6 +35,9 @@ namespace BusFinderBackend.Controllers
         }
 
         [HttpGet]
+        [SwaggerOperation(Summary = "Get all admins.")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(400)]
         public async Task<ActionResult<List<Admin>>> GetAllAdmins()
         {
             var admins = await _adminService.GetAllAdminsAsync();
@@ -41,6 +45,9 @@ namespace BusFinderBackend.Controllers
         }
 
         [HttpGet("{id}")]
+        [SwaggerOperation(Summary = "Get an admin by ID.")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(400)]
         public async Task<ActionResult<Admin>> GetAdminById(string id)
         {
             var admin = await _adminService.GetAdminByIdAsync(id);
@@ -50,6 +57,9 @@ namespace BusFinderBackend.Controllers
         }
 
         [HttpPost]
+        [SwaggerOperation(Summary = "Add a new admin.")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(400)]
         public async Task<IActionResult> AddAdmin([FromBody] Admin admin)
         {
             var result = await _adminService.AddAdminAsync(admin);
@@ -66,6 +76,9 @@ namespace BusFinderBackend.Controllers
         }
 
         [HttpPut("{adminId}")]
+        [SwaggerOperation(Summary = "Update an admin by ID.")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(400)]
         public async Task<ActionResult> UpdateAdmin(string adminId, [FromBody] Admin admin)
         {
             // Ensure the password is not included in the update
@@ -80,6 +93,9 @@ namespace BusFinderBackend.Controllers
         }
 
         [HttpDelete("{id}")]
+        [SwaggerOperation(Summary = "Delete an admin by ID.")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(400)]
         public async Task<ActionResult> DeleteAdmin(string id)
         {
             var existing = await _adminService.GetAdminByIdAsync(id);
@@ -97,6 +113,9 @@ namespace BusFinderBackend.Controllers
         }
 
         [HttpPost("login")]
+        [SwaggerOperation(Summary = "Login an admin.")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(400)]
         public async Task<IActionResult> Login([FromBody] AdminLoginRequest request)
         {
             var firebaseSection = _configuration.GetSection("Firebase");

@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using BusFinderBackend.DTO;
+using Swashbuckle.AspNetCore.Annotations;
 
 namespace BusFinderBackend.Controllers
 {
@@ -19,6 +20,9 @@ namespace BusFinderBackend.Controllers
         }
 
         [HttpGet]
+        [SwaggerOperation(Summary = "Get all bus shifts.")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(400)]
         public async Task<ActionResult<List<BusShift>>> GetAllBusShifts()
         {
             var busShifts = await _busShiftService.GetAllBusShiftsAsync();
@@ -26,6 +30,9 @@ namespace BusFinderBackend.Controllers
         }
 
         [HttpGet("{shiftId}")]
+        [SwaggerOperation(Summary = "Get a bus shift by its ID.")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(400)]
         public async Task<ActionResult<BusShift?>> GetBusShiftById(string shiftId)
         {
             var busShift = await _busShiftService.GetBusShiftByIdAsync(shiftId);
@@ -35,6 +42,9 @@ namespace BusFinderBackend.Controllers
         }
 
         [HttpPost]
+        [SwaggerOperation(Summary = "Add a new bus shift.")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(400)]
         public async Task<IActionResult> AddBusShift([FromBody] BusShift busShift)
         {
             await _busShiftService.AddBusShiftAsync(busShift);
@@ -42,6 +52,9 @@ namespace BusFinderBackend.Controllers
         }
 
         [HttpPut("{shiftId}")]
+        [SwaggerOperation(Summary = "Update a bus shift by its ID.")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(400)]
         public async Task<IActionResult> UpdateBusShift(string shiftId, [FromBody] BusShift busShift)
         {
             await _busShiftService.UpdateBusShiftAsync(shiftId, busShift);
@@ -49,6 +62,9 @@ namespace BusFinderBackend.Controllers
         }
 
         [HttpDelete("{shiftId}")]
+        [SwaggerOperation(Summary = "Delete a bus shift by its ID.")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(400)]
         public async Task<IActionResult> DeleteBusShift(string shiftId)
         {
             await _busShiftService.DeleteBusShiftAsync(shiftId);
@@ -56,7 +72,11 @@ namespace BusFinderBackend.Controllers
         }
 
         [HttpGet("by-route/{routeNumber}/future")]
+        [SwaggerOperation(Summary = "Get future bus shifts by route number, date, and time.")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(400)]
         public async Task<ActionResult<List<BusShiftDto>>> GetFutureBusShiftsByRouteNumber(string routeNumber, string date, string time)
+
         {
             var shifts = await _busShiftService.GetBusShiftsByRouteNumberAsync(routeNumber, date, time);
             if (shifts == null || shifts.Count == 0)

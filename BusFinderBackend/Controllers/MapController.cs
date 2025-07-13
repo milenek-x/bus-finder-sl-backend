@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using BusFinderBackend.Services;
 using Microsoft.Extensions.Logging;
 using BusFinderBackend.Model;
+using Swashbuckle.AspNetCore.Annotations;
 
 namespace BusFinderBackend.Controllers
 {
@@ -19,27 +20,39 @@ namespace BusFinderBackend.Controllers
         }
 
         [HttpGet("map-configuration")]
+        [SwaggerOperation(Summary = "Get all map configuration options.")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(400)]
         public IActionResult GetAllMapConfiguration()
         {
             var config = _mapService.GetAllMapConfiguration();
             return Ok(config);
         }
 
-        [HttpGet("admin-view-all-bus")] // Endpoint for admin view all bus configuration
+        [HttpGet("admin-view-all-bus")]
+        [SwaggerOperation(Summary = "Get admin view configuration for all buses.")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(400)]
         public IActionResult GetAdminViewAllBusConfiguration()
         {
             var config = _mapService.GetAdminViewAllBusConfiguration();
             return Ok(config);
         }
 
-        [HttpGet("staff-view-live-bus-shift")] // Endpoint for staff view live bus shift configuration
+        [HttpGet("staff-view-live-bus-shift")]
+        [SwaggerOperation(Summary = "Get staff view configuration for live bus shift.")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(400)]
         public IActionResult GetStaffViewLiveBusShiftConfiguration(string busRoute, string bus)
         {
             var config = _mapService.GetStaffViewLiveBusShiftConfiguration(busRoute, bus);
             return Ok(config);
         }
 
-        [HttpGet("passenger-view-live-bus-route")] // Endpoint for passenger view live bus route configuration
+        [HttpGet("passenger-view-live-bus-route")]
+        [SwaggerOperation(Summary = "Get passenger view configuration for live bus route.")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(400)]
         public IActionResult GetPassengerViewLiveBusRouteConfiguration(string busRoute, string bus, string passenger)
         {
             var config = _mapService.GetPassengerViewLiveBusRouteConfiguration(busRoute, bus, passenger);

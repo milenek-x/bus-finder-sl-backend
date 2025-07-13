@@ -61,3 +61,4 @@ E:\FinalYearProject\bus-finder-sl-backend\BusFinderBackend\bin\Debug\net8.0\Micr
 E:\FinalYearProject\bus-finder-sl-backend\BusFinderBackend\bin\Debug\net8.0\Microsoft.Extensions.ObjectPool.dll
 E:\FinalYearProject\bus-finder-sl-backend\BusFinderBackend\bin\Debug\net8.0\Microsoft.Extensions.Options.dll
 E:\FinalYearProject\bus-finder-sl-backend\BusFinderBackend\bin\Debug\net8.0\System.Net.WebSockets.WebSocketProtocol.dll
+E:\FinalYearProject\bus-finder-sl-backend\BusFinderBackend\bin\Debug\net8.0\Swashbuckle.AspNetCore.Annotations.dll
