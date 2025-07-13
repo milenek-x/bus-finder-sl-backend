@@ -6,6 +6,8 @@ using System.Threading.Tasks;
 using System.Net.Http;
 using System.Text.Json;
 using Microsoft.Extensions.Configuration;
+using BusFinderBackend.Services;
+using BusFinderBackend.Model.DTOs;
 
 namespace BusFinderBackend.Services
 {
@@ -14,11 +16,13 @@ namespace BusFinderBackend.Services
         private readonly BusRouteRepository _busRouteRepository;
         private readonly IConfiguration _configuration;
         private readonly BusStopRepository _busStopRepository;
+        private readonly BusShiftService _busShiftService;
 
-        public BusRouteService(BusRouteRepository busRouteRepository, BusStopRepository busStopRepository, IConfiguration configuration)
+        public BusRouteService(BusRouteRepository busRouteRepository, BusStopRepository busStopRepository, BusShiftService busShiftService, IConfiguration configuration)
         {
             _busRouteRepository = busRouteRepository ?? throw new ArgumentNullException(nameof(busRouteRepository));
             _busStopRepository = busStopRepository ?? throw new ArgumentNullException(nameof(busStopRepository));
+            _busShiftService = busShiftService ?? throw new ArgumentNullException(nameof(busShiftService));
             _configuration = configuration;
         }
 
@@ -119,16 +123,21 @@ namespace BusFinderBackend.Services
             return JsonSerializer.Serialize(geoJson);
         }
 
-        public async Task<List<BusRoute>> GetBusRoutesByStopsAsync(string startingPoint, string endingPoint)
+        public async Task<List<BusRouteWithShiftsDto>> GetBusRoutesByStopsAsync(string startingPoint, string endingPoint, string date, string time)
         {
             var allBusRoutes = await GetAllBusRoutesAsync();
-            var matchingRoutes = new List<BusRoute>();
+            var matchingRoutes = new List<BusRouteWithShiftsDto>();
 
             foreach (var route in allBusRoutes)
             {
-                if (route.RouteStops != null && route.RouteStops.Contains(startingPoint) && route.RouteStops.Contains(endingPoint))
+                if (route.RouteStops != null && route.RouteStops.Contains(startingPoint) && route.RouteStops.Contains(endingPoint) && !string.IsNullOrEmpty(route.RouteNumber))
                 {
-                    matchingRoutes.Add(route);
+                    var shifts = await _busShiftService.GetBusShiftsByRouteNumberAsync(route.RouteNumber!, date, time);
+                    matchingRoutes.Add(new BusRouteWithShiftsDto
+                    {
+                        Route = route,
+                        Shifts = shifts
+                    });
                 }
             }
 

@@ -74,7 +74,14 @@ builder.Services.AddScoped<PlaceRepository>();
 builder.Services.AddScoped<PlaceService>();
 builder.Services.AddScoped<EmailService>();
 builder.Services.AddScoped<BusRouteRepository>();
-builder.Services.AddScoped<BusRouteService>();
+builder.Services.AddScoped<BusRouteService>(provider =>
+    new BusRouteService(
+        provider.GetRequiredService<BusRouteRepository>(),
+        provider.GetRequiredService<BusStopRepository>(),
+        provider.GetRequiredService<BusShiftService>(),
+        provider.GetRequiredService<IConfiguration>()
+    )
+);
 builder.Services.AddScoped<BusRepository>();
 builder.Services.AddScoped<BusService>();
 builder.Services.AddScoped<BusShiftRepository>();

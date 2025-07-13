@@ -5,6 +5,7 @@ using Microsoft.Extensions.Configuration;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Text.Json;
+using BusFinderBackend.Model.DTOs;
 
 namespace BusFinderBackend.Controllers
 {
@@ -91,9 +92,9 @@ namespace BusFinderBackend.Controllers
         }
 
         [HttpGet("by-stops")]
-        public async Task<ActionResult<List<BusRoute>>> GetBusRoutesByStops(string startingPoint, string endingPoint)
+        public async Task<ActionResult<List<BusRouteWithShiftsDto>>> GetBusRoutesByStops(string startingPoint, string endingPoint, string date, string time)
         {
-            var routes = await _busRouteService.GetBusRoutesByStopsAsync(startingPoint, endingPoint);
+            var routes = await _busRouteService.GetBusRoutesByStopsAsync(startingPoint, endingPoint, date, time);
             if (routes == null || routes.Count == 0)
                 return NotFound();
             return Ok(routes);
