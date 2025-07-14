@@ -115,7 +115,7 @@ namespace BusFinderBackend.Services
                 {
                     id = "passengerLayer",
                     type = "realtime",
-                    signalRHubUrl = "/passengerHub/{passenger}",
+                    signalRHubUrl = $"/passengerHub/{passenger}",
                     renderOptions = new
                     {
                         markerIconUrl = "https://placehold.co/32x32/000000/FFFFFF?text=ME",
