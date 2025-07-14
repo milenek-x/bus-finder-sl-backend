@@ -90,6 +90,8 @@ builder.Services.AddScoped<PassengerRepository>();
 builder.Services.AddScoped<PassengerService>();
 builder.Services.AddScoped<DriveImageService>();
 builder.Services.AddScoped<MapService>();
+builder.Services.AddScoped<FeedbackRepository>();
+builder.Services.AddScoped<FeedbackService>();
 
 // Register SignalR services
 builder.Services.AddSignalR();

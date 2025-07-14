@@ -33,59 +33,61 @@ namespace BusFinderBackend.Services
             return Guid.NewGuid().ToString(); // Auto-generate FeedbackId using GUID
         }
 
-        public async Task<(bool Success, string? ErrorCode, string? ErrorMessage)> AddFeedbackAsync(Feedback feedback)
+        public async Task<(bool Success, string? ErrorCode, string? ErrorMessage, Feedback? Feedback, string? FeedbackId)> AddFeedbackAsync(FeedbackCreateDto feedbackDto)
         {
             // Check for null or empty PassengerId
-            if (string.IsNullOrEmpty(feedback.PassengerId))
+            if (string.IsNullOrEmpty(feedbackDto.PassengerId))
             {
-                return (false, "INVALID_PASSENGER", "Passenger ID cannot be null or empty.");
+                return (false, "INVALID_PASSENGER", "Passenger ID cannot be null or empty.", null, null);
             }
 
             // Check if PassengerId exists
-            var passenger = await _passengerRepository.GetPassengerByIdAsync(feedback.PassengerId);
+            var passenger = await _passengerRepository.GetPassengerByIdAsync(feedbackDto.PassengerId);
             if (passenger == null)
             {
-                return (false, "INVALID_PASSENGER", "Passenger ID does not exist.");
-            }
-
-            // Check for null or empty AdminId
-            if (string.IsNullOrEmpty(feedback.AdminId))
-            {
-                return (false, "INVALID_ADMIN", "Admin ID cannot be null or empty.");
-            }
-
-            // Check if AdminId exists
-            var admin = await _adminRepository.GetAdminByIdAsync(feedback.AdminId);
-            if (admin == null)
-            {
-                return (false, "INVALID_ADMIN", "Admin ID does not exist.");
+                return (false, "INVALID_PASSENGER", "Passenger ID does not exist.", null, null);
             }
 
             // Set the created time and auto-generate FeedbackId
-            feedback.CreatedTime = DateTime.UtcNow;
-            feedback.FeedbackId = GenerateFeedbackId(); // Auto-generate FeedbackId
+            var feedback = new Feedback
+            {
+                PassengerId = feedbackDto.PassengerId,
+                Message = feedbackDto.Message,
+                Subject = feedbackDto.Subject,
+                CreatedTime = DateTime.UtcNow,
+                FeedbackId = GenerateFeedbackId()
+            };
 
             await _feedbackRepository.AddFeedbackAsync(feedback);
-            return (true, null, null);
+            return (true, null, null, feedback, feedback.FeedbackId);
         }
 
-        public async Task<(bool Success, string? ErrorCode, string? ErrorMessage)> UpdateFeedbackAsync(string feedbackId, Feedback feedback)
+        public async Task<(bool Success, string? ErrorCode, string? ErrorMessage)> ReplyFeedbackAsync(string feedbackId, FeedbackReplyDto replyDto)
         {
             // Check for null or empty AdminId
-            if (string.IsNullOrEmpty(feedback.AdminId))
+            if (string.IsNullOrEmpty(replyDto.AdminId))
             {
                 return (false, "INVALID_ADMIN", "Admin ID cannot be null or empty.");
             }
 
             // Check if AdminId exists
-            var admin = await _adminRepository.GetAdminByIdAsync(feedback.AdminId);
+            var admin = await _adminRepository.GetAdminByIdAsync(replyDto.AdminId);
             if (admin == null)
             {
                 return (false, "INVALID_ADMIN", "Admin ID does not exist.");
             }
 
-            // Update only the specified fields
-            feedback.RepliedTime = DateTime.UtcNow; // Set the replied time
+            // Get the existing feedback
+            var feedback = await _feedbackRepository.GetFeedbackByIdAsync(feedbackId);
+            if (feedback == null)
+            {
+                return (false, "INVALID_FEEDBACK", "Feedback ID does not exist.");
+            }
+
+            // Update only the reply fields
+            feedback.AdminId = replyDto.AdminId;
+            feedback.Reply = replyDto.Reply;
+            feedback.RepliedTime = DateTime.UtcNow;
             await _feedbackRepository.UpdateFeedbackAsync(feedbackId, feedback);
             return (true, null, null);
         }
