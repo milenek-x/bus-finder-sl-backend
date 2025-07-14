@@ -8,6 +8,7 @@ using System.Text.Json;
 using Microsoft.Extensions.Configuration;
 using BusFinderBackend.Services;
 using BusFinderBackend.Model.DTOs;
+using BusFinderBackend.DTOs.BusShift; // Add this import for the correct DTO
 
 namespace BusFinderBackend.Services
 {
@@ -216,13 +217,22 @@ namespace BusFinderBackend.Services
 
             foreach (var route in allBusRoutes)
             {
-                if (route.RouteStops != null && route.RouteStops.Contains(startingPoint) && route.RouteStops.Contains(endingPoint) && !string.IsNullOrEmpty(route.RouteNumber))
+                if (route.RouteStops != null &&
+                    route.RouteStops.Contains(startingPoint) &&
+                    route.RouteStops.Contains(endingPoint) &&
+                    !string.IsNullOrEmpty(route.RouteNumber))
                 {
+                    // Ensure startingPoint comes before endingPoint in the route
+                    int startIdx = route.RouteStops.IndexOf(startingPoint);
+                    int endIdx = route.RouteStops.IndexOf(endingPoint);
+                    if (startIdx < 0 || endIdx < 0 || startIdx >= endIdx)
+                        continue;
+
                     var shifts = await _busShiftService.GetBusShiftsByRouteNumberAsync(route.RouteNumber!, date, time);
                     matchingRoutes.Add(new BusRouteWithShiftsDto
                     {
                         Route = route,
-                        Shifts = shifts
+                        Shifts = shifts // Now using List<BusShiftDto> from DTOs.BusShift
                     });
                 }
             }

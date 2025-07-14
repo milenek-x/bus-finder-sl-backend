@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Passenger Live Location Tracker</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+            background: #f0f2f5;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #ff6b35 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 2em;
+        }
+        .status {
+            padding: 15px 20px;
+            background: #e8f4f8;
+            border-left: 4px solid #2196F3;
+            margin: 20px;
+            border-radius: 5px;
+        }
+        .status.connected {
+            background: #e8f5e8;
+            border-left-color: #4CAF50;
+        }
+        .status.disconnected {
+            background: #ffeaa7;
+            border-left-color: #fdcb6e;
+        }
+        #map {
+            height: 400px;
+            width: 100%;
+            margin: 20px 0;
+        }
+        .controls {
+            padding: 20px;
+            text-align: center;
+        }
+        .input-group {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+        }
+        .input-group input {
+            padding: 8px;
+            font-size: 1em;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+        }
+        .btn {
+            background: #ff6b35;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+        }
+        .btn:hover {
+            background: #e55a2b;
+        }
+        .passenger-info {
+            margin: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.07);
+        }
+        .passenger-info h3 {
+            margin: 0 0 10px 0;
+            color: #ff6b35;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚶 Passenger Live Location Tracker</h1>
+            <p>Track a specific passenger in real time using SignalR</p>
+        </div>
+        <div id="connectionStatus" class="status">
+            Connecting to server...
+        </div>
+        <div class="controls">
+            <div class="input-group">
+                <input type="text" id="passengerIdInput" placeholder="Enter Passenger ID" />
+                <button class="btn" id="trackBtn">Track Passenger</button>
+            </div>
+        </div>
+        <div id="map"></div>
+        <div id="passengerInfo" class="passenger-info" style="display:none;"></div>
+    </div>
+    <!-- SignalR Client Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/6.0.1/signalr.min.js"></script>
+    <script>
+        let map;
+        let passengerMarker = null;
+        let connection;
+        let trackedPassengerId = null;
+        // Initialize Google Maps
+        function initMap() {
+            const colombo = { lat: 6.9271, lng: 79.8612 };
+            map = new google.maps.Map(document.getElementById("map"), {
+                zoom: 12,
+                center: colombo,
+                mapTypeId: 'roadmap',
+                styles: [
+                    { featureType: "poi", stylers: [{ visibility: "off" }] },
+                    { featureType: "transit", stylers: [{ visibility: "off" }] }
+                ]
+            });
+            initSignalR();
+        }
+        // Initialize SignalR Connection
+        function initSignalR() {
+            connection = new signalR.HubConnectionBuilder()
+                .withUrl("http://localhost:5176/passengerHub") // Change if needed
+                .build();
+            connection.on("PassengerLocationUpdated", function (passengerId, latitude, longitude) {
+                if (trackedPassengerId && passengerId === trackedPassengerId) {
+                    updatePassengerMarker(passengerId, latitude, longitude);
+                    updatePassengerInfo(passengerId, latitude, longitude);
+                }
+            });
+            connection.onclose(function () {
+                updateConnectionStatus("disconnected", "❌ Disconnected from server");
+            });
+            connection.onreconnected(function () {
+                updateConnectionStatus("connected", "✅ Reconnected to server");
+            });
+            connection.start().then(function () {
+                updateConnectionStatus("connected", "✅ Connected to server - Ready to receive passenger updates!");
+            }).catch(function (err) {
+                updateConnectionStatus("disconnected", "❌ Failed to connect to server");
+                console.error("SignalR Connection Error: ", err);
+            });
+        }
+        // Update passenger marker on map
+        function updatePassengerMarker(passengerId, latitude, longitude) {
+            const position = { lat: latitude, lng: longitude };
+            if (passengerMarker) {
+                passengerMarker.setPosition(position);
+            } else {
+                passengerMarker = new google.maps.Marker({
+                    position: position,
+                    map: map,
+                    title: `Passenger ${passengerId}`,
+                    icon: {
+                        url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(`
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+                                <rect width="32" height="32" fill="#ff6b35" rx="6"/>
+                                <text x="16" y="20" font-family="Arial, sans-serif" font-size="10" font-weight="bold" text-anchor="middle" fill="#fff">🚶</text>
+                            </svg>
+                        `),
+                        scaledSize: new google.maps.Size(32, 32)
+                    }
+                });
+            }
+            map.setCenter(position);
+        }
+        // Update passenger info box
+        function updatePassengerInfo(passengerId, latitude, longitude) {
+            const info = document.getElementById('passengerInfo');
+            info.style.display = 'block';
+            info.innerHTML = `
+                <h3>🚶 Passenger ${passengerId}</h3>
+                <p><strong>Location:</strong> ${latitude.toFixed(4)}, ${longitude.toFixed(4)}</p>
+                <p><strong>Status:</strong> <span style="color: green;">● Active</span></p>
+            `;
+        }
+        // Update connection status
+        function updateConnectionStatus(status, message) {
+            const statusElement = document.getElementById('connectionStatus');
+            statusElement.className = `status ${status}`;
+            statusElement.textContent = message;
+        }
+        // Track button event
+        document.addEventListener('DOMContentLoaded', function () {
+            document.getElementById('trackBtn').addEventListener('click', function () {
+                const input = document.getElementById('passengerIdInput').value.trim();
+                if (input) {
+                    trackedPassengerId = input;
+                    document.getElementById('passengerInfo').style.display = 'none';
+                    if (passengerMarker) {
+                        passengerMarker.setMap(null);
+                        passengerMarker = null;
+                    }
+                }
+            });
+        });
+        // Initialize everything when page loads
+        window.onload = function() {
+            // Google Maps will call initMap
+        };
+    </script>
+    <!-- Load Google Maps API -->
+    <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAN397HAlCveqhw7idZNJHdhSidLl9rIKA&callback=initMap"></script>
+</body>
+</html> 

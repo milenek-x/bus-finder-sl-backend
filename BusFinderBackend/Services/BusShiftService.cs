@@ -74,25 +74,81 @@ namespace BusFinderBackend.Services
             await _busShiftRepository.UpdateBusShiftAsync(shiftId, busShift);
         }
 
+        public async Task RemoveNormalShiftAsync(string shiftId)
+        {
+            var busShift = await _busShiftRepository.GetBusShiftByIdAsync(shiftId);
+            if (busShift == null)
+                throw new ArgumentException($"No BusShift found with ShiftId {shiftId}");
+            busShift.Normal = null;
+            await _busShiftRepository.UpdateBusShiftAsync(shiftId, busShift);
+        }
+
+        public async Task RemoveReverseShiftAsync(string shiftId)
+        {
+            var busShift = await _busShiftRepository.GetBusShiftByIdAsync(shiftId);
+            if (busShift == null)
+                throw new ArgumentException($"No BusShift found with ShiftId {shiftId}");
+            busShift.Reverse = null;
+            await _busShiftRepository.UpdateBusShiftAsync(shiftId, busShift);
+        }
+
         public async Task DeleteBusShiftAsync(string shiftId)
         {
             await _busShiftRepository.DeleteBusShiftAsync(shiftId);
         }
 
-        public async Task<List<BusShiftDto>> GetBusShiftsByRouteNumberAsync(string routeNumber, string date, string time)
+        public async Task<List<DTOs.BusShift.BusShiftDto>> GetBusShiftsByRouteNumberAsync(string routeNumber, string date, string time)
         {
             var allBusShifts = await GetAllBusShiftsAsync();
+            bool isReverse = routeNumber.Contains("R");
+            string routeNoForComparison = isReverse ? routeNumber.Replace("R", "") : routeNumber;
+
+            // Parse input date and time into DateTime
+            if (!DateTime.TryParse($"{date} {time}", out var inputDateTime))
+                return new List<DTOs.BusShift.BusShiftDto>();
+
             var matchingShifts = allBusShifts
-                .Where(shift => shift.RouteNo == routeNumber && IsWithinFutureDate(shift.Date ?? "", date))
-                .Select(shift => new BusShiftDto
+                .Where(shift => shift.RouteNo == routeNoForComparison)
+                .Select(shift => new
                 {
-                    StartTime = shift.StartTime ?? "Unknown", // Handle possible null
-                    EndTime = shift.EndTime ?? "Unknown", // Handle possible null
-                    TravelTime = CalculateTravelTime(shift.StartTime, shift.EndTime),
-                    Date = shift.Date // Map the Date property
+                    Shift = shift,
+                    Details = isReverse ? shift.Reverse : shift.Normal
                 })
-                .Where(shift => IsFutureShift(shift.EndTime ?? "Unknown", shift.Date ?? "", date, time))
+                .Where(x => x.Details != null)
+                .Where(x =>
+                {
+                    // Date window filter
+                    if (!DateTime.TryParse(x.Details!.Date, out var shiftDate))
+                        return false;
+                    var twoDaysFromInput = inputDateTime.Date.AddDays(2);
+                    if (shiftDate.Date < inputDateTime.Date || shiftDate.Date > twoDaysFromInput.Date)
+                        return false;
+
+                    // Future shift filter
+                    if (!DateTime.TryParse($"{x.Details!.Date} {x.Details!.EndTime}", out var shiftEndDateTime))
+                        return false;
+                    return shiftEndDateTime > inputDateTime;
+                })
+                .Select(x => new DTOs.BusShift.BusShiftDto
+                {
+                    ShiftId = x.Shift.ShiftId,
+                    RouteNo = x.Shift.RouteNo,
+                    NumberPlate = x.Shift.NumberPlate,
+                    Normal = !isReverse ? new DTOs.BusShift.BusShiftNormalDto
+                    {
+                        StartTime = x.Details!.StartTime,
+                        EndTime = x.Details!.EndTime,
+                        Date = x.Details!.Date
+                    } : null,
+                    Reverse = isReverse ? new DTOs.BusShift.BusShiftReverseDto
+                    {
+                        StartTime = x.Details!.StartTime,
+                        EndTime = x.Details!.EndTime,
+                        Date = x.Details!.Date
+                    } : null
+                })
                 .ToList();
+
             return matchingShifts;
         }
 

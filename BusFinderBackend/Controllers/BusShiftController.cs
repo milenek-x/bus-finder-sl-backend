@@ -71,6 +71,26 @@ namespace BusFinderBackend.Controllers
             return NoContent();
         }
 
+        [HttpDelete("{shiftId}/normal")]
+        [SwaggerOperation(Summary = "Remove the normal shift details from a bus shift.")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(400)]
+        public async Task<IActionResult> RemoveNormalShift(string shiftId)
+        {
+            await _busShiftService.RemoveNormalShiftAsync(shiftId);
+            return NoContent();
+        }
+
+        [HttpDelete("{shiftId}/reverse")]
+        [SwaggerOperation(Summary = "Remove the reverse shift details from a bus shift.")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(400)]
+        public async Task<IActionResult> RemoveReverseShift(string shiftId)
+        {
+            await _busShiftService.RemoveReverseShiftAsync(shiftId);
+            return NoContent();
+        }
+
         [HttpGet("by-route/{routeNumber}/future")]
         [SwaggerOperation(Summary = "Get future bus shifts by route number, date, and time.")]
         [ProducesResponseType(200)]
