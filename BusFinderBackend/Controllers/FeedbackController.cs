@@ -4,6 +4,7 @@ using BusFinderBackend.Model;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using Swashbuckle.AspNetCore.Annotations;
+using BusFinderBackend.DTOs.Feedback;
 
 namespace BusFinderBackend.Controllers
 {

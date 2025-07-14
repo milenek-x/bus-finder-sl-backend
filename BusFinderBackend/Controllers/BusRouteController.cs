@@ -5,7 +5,7 @@ using Microsoft.Extensions.Configuration;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Text.Json;
-using BusFinderBackend.Model.DTOs;
+using BusFinderBackend.DTOs.BusRoute;
 //
 using Swashbuckle.AspNetCore.Annotations;
 

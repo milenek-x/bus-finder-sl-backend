@@ -1,7 +1,8 @@
-using BusFinderBackend.Model;
 using BusFinderBackend.Repositories;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using BusFinderBackend.Model;
+using BusFinderBackend.DTOs.Feedback;
 
 namespace BusFinderBackend.Services
 {

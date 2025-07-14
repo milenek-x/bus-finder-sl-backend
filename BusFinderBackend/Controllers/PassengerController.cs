@@ -11,6 +11,7 @@ using System.IO;
 using BusFinderBackend.Hubs;
 using Microsoft.AspNetCore.SignalR;
 using Swashbuckle.AspNetCore.Annotations;
+using BusFinderBackend.DTOs.Passenger;
 
 namespace BusFinderBackend.Controllers
 {
@@ -111,7 +112,7 @@ namespace BusFinderBackend.Controllers
         [SwaggerOperation(Summary = "Login a passenger.")]
         [ProducesResponseType(200)]
         [ProducesResponseType(400)]
-        public async Task<IActionResult> Login([FromBody] LoginRequest request)
+        public async Task<IActionResult> Login([FromBody] LoginRequestDto request)
         {
             var firebaseSection = _configuration.GetSection("Firebase");
             var apiKey = firebaseSection["ApiKey"];
@@ -131,7 +132,10 @@ namespace BusFinderBackend.Controllers
         }
 
         [HttpPost("update-password")]
-        public async Task<IActionResult> UpdatePassword([FromBody] UpdatePasswordRequest request)
+        [SwaggerOperation(Summary = "Update passenger password.")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(400)]
+        public async Task<IActionResult> UpdatePassword([FromBody] UpdatePasswordRequestDto request)
         {
             var result = await _passengerService.UpdatePasswordAsync(request.Email, request.OldPassword, request.NewPassword);
             if (!result.Success)
@@ -142,7 +146,10 @@ namespace BusFinderBackend.Controllers
         }
 
         [HttpPost("forgot-password")]
-        public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequest request)
+        [SwaggerOperation(Summary = "Send passenger password reset link.")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(400)]
+        public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequestDto request)
         {
             try
             {
@@ -156,7 +163,10 @@ namespace BusFinderBackend.Controllers
         }
 
         [HttpPost("reset-password")]
-        public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordRequest request)
+        [SwaggerOperation(Summary = "Reset passenger password.")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(400)]
+        public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordRequestDto request)
         {
             try
             {
@@ -170,7 +180,10 @@ namespace BusFinderBackend.Controllers
         }
 
         [HttpPost("google-signin")]
-        public async Task<IActionResult> GoogleSignIn([FromBody] GoogleSignInRequest request)
+        [SwaggerOperation(Summary = "Sign in a passenger with Google.")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(400)]
+        public async Task<IActionResult> GoogleSignIn([FromBody] GoogleSignInRequestDto request)
         {
             var result = await _passengerService.GoogleSignInAsync(request.IdToken);
             if (!result.Success)
@@ -181,13 +194,19 @@ namespace BusFinderBackend.Controllers
         }
 
         [HttpPost("{passengerId}/favorite-routes")]
-        public async Task<IActionResult> AddFavoriteRoute(string passengerId, [FromBody] FavoriteRouteRequest request)
+        [SwaggerOperation(Summary = "Add a favorite route for a passenger.")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(400)]
+        public async Task<IActionResult> AddFavoriteRoute(string passengerId, [FromBody] FavoriteRouteRequestDto request)
         {
             await _passengerService.AddFavoriteRouteAsync(passengerId, request.RouteNumber);
             return Ok(new { message = "Favorite route added." });
         }
 
         [HttpDelete("{passengerId}/favorite-routes/{routeId}")]
+        [SwaggerOperation(Summary = "Remove a favorite route for a passenger.")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(400)]
         public async Task<IActionResult> RemoveFavoriteRoute(string passengerId, string routeId)
         {
             try
@@ -202,7 +221,10 @@ namespace BusFinderBackend.Controllers
         }
 
         [HttpPost("{passengerId}/favorite-places")]
-        public async Task<IActionResult> AddFavoritePlace(string passengerId, [FromBody] FavoritePlaceRequest request)
+        [SwaggerOperation(Summary = "Add a favorite place for a passenger.")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(400)]
+        public async Task<IActionResult> AddFavoritePlace(string passengerId, [FromBody] FavoritePlaceRequestDto request)
         {
             if (string.IsNullOrEmpty(request.PlaceId))
             {
@@ -214,6 +236,9 @@ namespace BusFinderBackend.Controllers
         }
 
         [HttpDelete("{passengerId}/favorite-places/{placeId}")]
+        [SwaggerOperation(Summary = "Remove a favorite place for a passenger.")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(400)]
         public async Task<IActionResult> RemoveFavoritePlace(string passengerId, string placeId)
         {
             try
@@ -228,7 +253,10 @@ namespace BusFinderBackend.Controllers
         }
 
         [HttpPut("{passengerId}/location")]
-        public async Task<IActionResult> UpdateLocation(string passengerId, [FromBody] PassengerLocationUpdateRequest request)
+        [SwaggerOperation(Summary = "Update the current location of a passenger.")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(400)]
+        public async Task<IActionResult> UpdateLocation(string passengerId, [FromBody] PassengerLocationUpdateRequestDto request)
         {
             await _passengerService.UpdateLocationAsync(passengerId, request.Latitude, request.Longitude);
             // Send the CORRECT SignalR message with actual coordinates
@@ -240,7 +268,10 @@ namespace BusFinderBackend.Controllers
         }
 
         [HttpPost("verify-oob-code")]
-        public async Task<IActionResult> VerifyOobCode([FromBody] PassengerVerifyOobCodeRequest request)
+        [SwaggerOperation(Summary = "Verify passenger password reset OOB code.")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(400)]
+        public async Task<IActionResult> VerifyOobCode([FromBody] PassengerVerifyOobCodeRequestDto request)
         {
             if (string.IsNullOrEmpty(request.Email) || string.IsNullOrEmpty(request.OobCode))
             {
@@ -256,7 +287,10 @@ namespace BusFinderBackend.Controllers
         }
 
         [HttpPost("upload-profile-picture")]
-        public async Task<IActionResult> UploadProfilePicture( IFormFile file)
+        [SwaggerOperation(Summary = "Upload a profile picture for a passenger.")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(400)]
+        public async Task<IActionResult> UploadProfilePicture(IFormFile file)
         {
             if (file == null || file.Length == 0)
             {
@@ -280,6 +314,10 @@ namespace BusFinderBackend.Controllers
         }
 
         [HttpGet("profile-picture/{passengerId}")]
+        [SwaggerOperation(Summary = "Get the profile picture of a passenger.")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(400)]
+        [ProducesResponseType(404)]
         public async Task<IActionResult> GetProfilePicture(string passengerId)
         {
             var passenger = await _passengerService.GetPassengerByIdAsync(passengerId);
@@ -293,6 +331,9 @@ namespace BusFinderBackend.Controllers
         }
 
         [HttpPut("update-profile-picture/{passengerId}")]
+        [SwaggerOperation(Summary = "Update the profile picture of a passenger.")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(400)]
         public async Task<IActionResult> UpdateProfilePicture(string passengerId, IFormFile file)
         {
             if (file == null || file.Length == 0)
@@ -319,6 +360,10 @@ namespace BusFinderBackend.Controllers
         }
 
         [HttpGet("get-id-by-email/{email}")]
+        [SwaggerOperation(Summary = "Get passenger ID by email.")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(400)]
+        [ProducesResponseType(404)]
         public async Task<IActionResult> GetPassengerIdByEmail(string email)
         {
             if (string.IsNullOrEmpty(email))
@@ -333,69 +378,6 @@ namespace BusFinderBackend.Controllers
             }
 
             return Ok(new { passengerId });
-        }
-
-        public class LoginRequest
-        {
-            public string Email { get; set; } = string.Empty;
-            public string Password { get; set; } = string.Empty;
-        }
-
-        public class UpdatePasswordRequest
-        {
-            public string Email { get; set; } = string.Empty;
-            public string OldPassword { get; set; } = string.Empty;
-            public string NewPassword { get; set; } = string.Empty;
-        }
-
-        public class ForgotPasswordRequest
-        {
-            public string Email { get; set; } = string.Empty;
-        }
-
-        public class ResetPasswordRequest
-        {
-            public string Email { get; set; } = string.Empty;
-            public string NewPassword { get; set; } = string.Empty;
-        }
-
-        public class GoogleSignInRequest
-        {
-            public string IdToken { get; set; } = string.Empty; // The ID token received from Google Sign-In
-        }
-
-        public class PassengerLocationUpdateRequest
-        {
-            public double? Latitude { get; set; }
-            public double? Longitude { get; set; }
-        }
-
-        public class FavoriteRouteRequest
-        {
-            public string RouteNumber { get; set; } = string.Empty; // Accept routeNumber as a string
-        }
-
-        public class FavoritePlaceRequest
-        {
-            public string PlaceId { get; set; } = string.Empty; // Accept placeId as a string
-        }
-
-        public class PassengerVerifyOobCodeRequest
-        {
-            public string? Email { get; set; }
-            public string? OobCode { get; set; }
-        }
-
-        public class PassengerForgotPasswordRequest
-        {
-            public string? Email { get; set; }
-            public string? NewPassword { get; set; }
-        }
-
-        public class PassengerResetPasswordRequest
-        {
-            public string? Email { get; set; }
-            public string? NewPassword { get; set; }
         }
     }
 } 

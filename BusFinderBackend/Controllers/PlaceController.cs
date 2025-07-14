@@ -87,6 +87,10 @@ namespace BusFinderBackend.Controllers
         }
 
         [HttpGet("search/google/{name}")]
+        [SwaggerOperation(Summary = "Search places using Google Maps API by name.")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(400)]
+        [ProducesResponseType(404)]
         public async Task<ActionResult<List<Place>>> SearchUsingGoogleApi(string name)
         {
             var places = await _placeService.SearchPlacesUsingGoogleApiAsync(name);
@@ -96,6 +100,10 @@ namespace BusFinderBackend.Controllers
         }
 
         [HttpGet("search/firebase/{partialName}")]
+        [SwaggerOperation(Summary = "Search places by partial name using Firebase.")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(400)]
+        [ProducesResponseType(404)]
         public async Task<ActionResult<List<Place>>> SearchPlacesByPartialName(string partialName)
         {
             var places = await _placeService.SearchPlacesByPartialNameAsync(partialName);

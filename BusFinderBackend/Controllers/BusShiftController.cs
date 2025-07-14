@@ -3,7 +3,7 @@ using BusFinderBackend.Services;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using BusFinderBackend.DTO;
+using BusFinderBackend.DTOs.BusShift;
 using Swashbuckle.AspNetCore.Annotations;
 
 namespace BusFinderBackend.Controllers

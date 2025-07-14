@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.SignalR;
 using BusFinderBackend.Hubs;
 using System.Text.Json;
 using Swashbuckle.AspNetCore.Annotations;
+using BusFinderBackend.DTOs.Bus;
 
 namespace BusFinderBackend.Controllers
 {
@@ -72,7 +73,7 @@ namespace BusFinderBackend.Controllers
         [SwaggerOperation(Summary = "Update the capacity status of a bus.")]
         [ProducesResponseType(200)]
         [ProducesResponseType(400)]
-        public async Task<IActionResult> UpdateBusCapacity(string numberPlate, [FromBody] BusCapacityUpdateRequest request)
+        public async Task<IActionResult> UpdateBusCapacity(string numberPlate, [FromBody] BusCapacityUpdateRequestDto request)
         {
             await _busService.UpdateBusCapacityAsync(numberPlate, request.BusCapacity);
             return NoContent();
@@ -82,7 +83,7 @@ namespace BusFinderBackend.Controllers
         [SwaggerOperation(Summary = "Update the SOS status of a bus.")]
         [ProducesResponseType(200)]
         [ProducesResponseType(400)]
-        public async Task<IActionResult> UpdateSosStatus(string numberPlate, [FromBody] SosStatusUpdateRequest request)
+        public async Task<IActionResult> UpdateSosStatus(string numberPlate, [FromBody] SosStatusUpdateRequestDto request)
         {
             await _busService.UpdateSosStatusAsync(numberPlate, request.SosStatus);
             return NoContent();
@@ -92,7 +93,7 @@ namespace BusFinderBackend.Controllers
         [SwaggerOperation(Summary = "Update the current location of a bus.")]
         [ProducesResponseType(200)]
         [ProducesResponseType(400)]
-        public async Task<IActionResult> UpdateCurrentLocation(string numberPlate, [FromBody] LocationUpdateRequest request)
+        public async Task<IActionResult> UpdateCurrentLocation(string numberPlate, [FromBody] LocationUpdateRequestDto request)
         {
             // Update the database first
             await _busService.UpdateCurrentLocationAsync(numberPlate, request.CurrentLocationLatitude, request.CurrentLocationLongitude);
@@ -190,21 +191,5 @@ namespace BusFinderBackend.Controllers
             var buses = await _busService.GetBusesByStaffIdAsync(staffId);
             return Ok(buses);
         }
-    }
-
-    public class BusCapacityUpdateRequest
-    {
-        public bool BusCapacity { get; set; }
-    }
-
-    public class SosStatusUpdateRequest
-    {
-        public bool SosStatus { get; set; }
-    }
-
-    public class LocationUpdateRequest
-    {
-        public double CurrentLocationLatitude { get; set; }
-        public double CurrentLocationLongitude { get; set; }
     }
 } 

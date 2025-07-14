@@ -8,6 +8,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.Http;
 using System.IO;
 using Swashbuckle.AspNetCore.Annotations;
+using BusFinderBackend.DTOs.Staff;
 
 namespace BusFinderBackend.Controllers
 {
@@ -114,14 +115,11 @@ namespace BusFinderBackend.Controllers
             return Ok(staffList);
         }
 
-        public class StaffLoginRequest
-        {
-            public string? Email { get; set; }
-            public string? Password { get; set; }
-        }
-
         [HttpPost("login")]
-        public async Task<IActionResult> Login([FromBody] StaffLoginRequest request)
+        [SwaggerOperation(Summary = "Login a staff member.")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(400)]
+        public async Task<IActionResult> Login([FromBody] StaffLoginRequestDto request)
         {
             var firebaseSection = _configuration.GetSection("Firebase");
             var apiKey = firebaseSection["ApiKey"];
@@ -148,15 +146,11 @@ namespace BusFinderBackend.Controllers
             });
         }
 
-        public class StaffPasswordUpdateRequest
-        {
-            public string? Email { get; set; }
-            public string? OldPassword { get; set; }
-            public string? NewPassword { get; set; }
-        }
-
         [HttpPost("update-password")]
-        public async Task<IActionResult> UpdatePassword([FromBody] StaffPasswordUpdateRequest request)
+        [SwaggerOperation(Summary = "Update staff password.")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(400)]
+        public async Task<IActionResult> UpdatePassword([FromBody] StaffPasswordUpdateRequestDto request)
         {
             var result = await _staffService.UpdatePasswordAsync(request.Email!, request.OldPassword!, request.NewPassword!);
             if (!result.Success)
@@ -170,14 +164,11 @@ namespace BusFinderBackend.Controllers
             return Ok(new { message = "Password updated successfully." });
         }
 
-        public class StaffForgotPasswordRequest
-        {
-            public string? Email { get; set; }
-            public string? NewPassword { get; set; }
-        }
-
         [HttpPost("forgot-password")]
-        public async Task<IActionResult> ForgotPassword([FromBody] StaffForgotPasswordRequest request)
+        [SwaggerOperation(Summary = "Send staff password reset link.")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(400)]
+        public async Task<IActionResult> ForgotPassword([FromBody] StaffForgotPasswordRequestDto request)
         {
             try
             {
@@ -190,14 +181,11 @@ namespace BusFinderBackend.Controllers
             }
         }
 
-        public class StaffResetPasswordRequest
-        {
-            public string? Email { get; set; }
-            public string? NewPassword { get; set; }
-        }
-
         [HttpPost("reset-password")]
-        public async Task<IActionResult> ResetPassword([FromBody] StaffResetPasswordRequest request)
+        [SwaggerOperation(Summary = "Reset staff password.")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(400)]
+        public async Task<IActionResult> ResetPassword([FromBody] StaffResetPasswordRequestDto request)
         {
             try
             {
@@ -217,6 +205,9 @@ namespace BusFinderBackend.Controllers
         }
 
         [HttpPost("upload-profile-picture")]
+        [SwaggerOperation(Summary = "Upload a profile picture for a staff member.")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(400)]
         public async Task<IActionResult> UploadProfilePicture(IFormFile file)
         {
             if (file == null || file.Length == 0)
@@ -241,6 +232,10 @@ namespace BusFinderBackend.Controllers
         }
 
         [HttpGet("{staffId}/profile-picture")]
+        [SwaggerOperation(Summary = "Get the profile picture of a staff member.")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(400)]
+        [ProducesResponseType(404)]
         public async Task<IActionResult> GetProfilePicture(string staffId)
         {
             var staff = await _staffService.GetStaffByIdAsync(staffId);
@@ -254,6 +249,9 @@ namespace BusFinderBackend.Controllers
         }
 
         [HttpPut("{staffId}/update-profile-picture")]
+        [SwaggerOperation(Summary = "Update the profile picture of a staff member.")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(400)]
         public async Task<IActionResult> UpdateProfilePicture(string staffId, IFormFile file)
         {
             if (file == null || file.Length == 0)
@@ -280,6 +278,9 @@ namespace BusFinderBackend.Controllers
         }
 
         [HttpPost("upload-image")]
+        [SwaggerOperation(Summary = "Upload an image for a staff member.")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(400)]
         public async Task<IActionResult> UploadImage(IFormFile file)
         {
             if (file == null || file.Length == 0)
@@ -300,6 +301,10 @@ namespace BusFinderBackend.Controllers
         }
 
         [HttpGet("get-id-by-email/{email}")]
+        [SwaggerOperation(Summary = "Get staff ID by email.")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(400)]
+        [ProducesResponseType(404)]
         public async Task<IActionResult> GetStaffIdByEmail(string email)
         {
             if (string.IsNullOrEmpty(email))

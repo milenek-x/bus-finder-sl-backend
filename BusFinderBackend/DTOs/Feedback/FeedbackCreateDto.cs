@@ -1,4 +1,4 @@
-namespace BusFinderBackend.Model
+namespace BusFinderBackend.DTOs.Feedback
 {
     public class FeedbackCreateDto
     {

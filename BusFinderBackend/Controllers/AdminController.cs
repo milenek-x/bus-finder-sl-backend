@@ -14,6 +14,7 @@ using FirebaseAdmin.Auth;
 using Microsoft.Extensions.Logging;
 using System.IO;
 using Swashbuckle.AspNetCore.Annotations;
+using BusFinderBackend.DTOs.Admin;
 
 namespace BusFinderBackend.Controllers
 {
@@ -106,17 +107,11 @@ namespace BusFinderBackend.Controllers
             return NoContent();
         }
 
-        public class AdminLoginRequest
-        {
-            public string? Email { get; set; }
-            public string? Password { get; set; }
-        }
-
         [HttpPost("login")]
         [SwaggerOperation(Summary = "Login an admin.")]
         [ProducesResponseType(200)]
         [ProducesResponseType(400)]
-        public async Task<IActionResult> Login([FromBody] AdminLoginRequest request)
+        public async Task<IActionResult> Login([FromBody] AdminLoginRequestDto request)
         {
             var firebaseSection = _configuration.GetSection("Firebase");
             var apiKey = firebaseSection["ApiKey"];
@@ -143,15 +138,12 @@ namespace BusFinderBackend.Controllers
             });
         }
 
-        public class AdminPasswordUpdateRequest
-        {
-            public string? Email { get; set; }
-            public string? OldPassword { get; set; }
-            public string? NewPassword { get; set; }
-        }
-
         [HttpPost("update-password")]
-        public async Task<IActionResult> UpdatePassword([FromBody] AdminPasswordUpdateRequest request)
+        [SwaggerOperation(Summary = "Update admin password.")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(400)]
+        [ProducesResponseType(401)]
+        public async Task<IActionResult> UpdatePassword([FromBody] AdminPasswordUpdateRequestDto request)
         {
             var firebaseSection = _configuration.GetSection("Firebase");
             var apiKey = firebaseSection["ApiKey"];
@@ -185,13 +177,11 @@ namespace BusFinderBackend.Controllers
             return Ok(new { message = "Password updated successfully." });
         }
 
-        public class AdminForgotPasswordRequest
-        {
-            public string? Email { get; set; }
-        }
-
         [HttpPost("forgot-password")]
-        public async Task<IActionResult> ForgotPassword([FromBody] AdminForgotPasswordRequest request)
+        [SwaggerOperation(Summary = "Send admin password reset link.")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(400)]
+        public async Task<IActionResult> ForgotPassword([FromBody] AdminForgotPasswordRequestDto request)
         {
             if (string.IsNullOrEmpty(request.Email))
             {
@@ -205,7 +195,7 @@ namespace BusFinderBackend.Controllers
                 _logger.LogInformation("Password reset link generated for email: {Email}", request.Email);
                 return Ok(new { resetLink });
             }
-            catch (FirebaseAuthException ex)
+            catch (FirebaseAdmin.Auth.FirebaseAuthException ex)
             {
                 _logger.LogError(ex, "Error generating password reset link for email: {Email}", request.Email);
                 return BadRequest(new { error = ex.Message });
@@ -213,7 +203,10 @@ namespace BusFinderBackend.Controllers
         }
 
         [HttpPost("reset-password")]
-        public async Task<IActionResult> ResetPassword([FromBody] AdminResetPasswordRequest request)
+        [SwaggerOperation(Summary = "Reset admin password.")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(400)]
+        public async Task<IActionResult> ResetPassword([FromBody] AdminResetPasswordRequestDto request)
         {
             if (string.IsNullOrEmpty(request.Email) || string.IsNullOrEmpty(request.NewPassword))
             {
@@ -231,88 +224,11 @@ namespace BusFinderBackend.Controllers
             }
         }
 
-        public class AdminResetPasswordRequest
-        {
-            public string? Email { get; set; }
-            public string? NewPassword { get; set; }
-        }
-
-        [HttpPost("upload-profile-picture")]
-        public async Task<IActionResult> UploadProfilePicture(IFormFile file)
-        {
-            if (file == null || file.Length == 0)
-            {
-                return BadRequest("No file uploaded.");
-            }
-
-            try
-            {
-                using (var stream = file.OpenReadStream())
-                {
-                    var fileName = $"profile_picture_{DateTime.UtcNow.Ticks}.jpg"; // Generate a unique file name
-                    var link = await _adminService.UploadProfilePictureAsync(stream, fileName);
-                    return Ok(new { link }); // Return the link to the uploaded image
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error uploading profile picture.");
-                return StatusCode(500, new { error = "Failed to upload profile picture.", message = ex.Message });
-            }
-        }
-
-        [HttpGet("profile-picture/{adminId}")]
-        public async Task<IActionResult> GetProfilePicture(string adminId)
-        {
-            var admin = await _adminService.GetAdminByIdAsync(adminId);
-            if (admin == null || string.IsNullOrEmpty(admin.ProfilePicture))
-            {
-                return NotFound(new { error = "Admin not found or profile picture not set." });
-            }
-
-            var imageBytes = await _adminService.GetProfilePictureAsync(admin.ProfilePicture);
-            return File(imageBytes, "image/jpeg"); // Return the image as a file response
-        }
-
-        [HttpPut("update-profile-picture/{adminId}")]
-        public async Task<IActionResult> UpdateProfilePicture(string adminId, IFormFile file)
-        {
-            if (file == null || file.Length == 0)
-            {
-                return BadRequest("No file uploaded.");
-            }
-
-            var admin = await _adminService.GetAdminByIdAsync(adminId);
-            if (admin == null)
-            {
-                return NotFound(new { error = "Admin not found." });
-            }
-
-            try
-            {
-                using (var stream = new MemoryStream())
-                {
-                    await file.CopyToAsync(stream); // Copy the uploaded file to the memory stream
-                    stream.Position = 0; // Reset the stream position to the beginning
-
-                    var fileName = $"profile_picture_{DateTime.UtcNow.Ticks}.jpg"; // Generate a unique file name
-                    var profilePictureUrl = await _adminService.UploadProfilePictureAsync(stream, fileName);
-
-                    // Update the admin's profile picture URL
-                    admin.ProfilePicture = profilePictureUrl;
-                    await _adminService.UpdateAdminAsync(adminId, admin); // Ensure to update the admin record
-
-                    return Ok(new { link = profilePictureUrl }); // Return the link to the uploaded image
-                }
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { error = "Failed to update profile picture.", message = ex.Message });
-            }
-        }
-
         [HttpPost("verify-oob-code")]
-        public async Task<IActionResult> VerifyOobCode([FromBody] AdminVerifyOobCodeRequest request)
+        [SwaggerOperation(Summary = "Verify admin password reset OOB code.")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(400)]
+        public async Task<IActionResult> VerifyOobCode([FromBody] AdminVerifyOobCodeRequestDto request)
         {
             if (string.IsNullOrEmpty(request.Email) || string.IsNullOrEmpty(request.OobCode))
             {
@@ -327,19 +243,11 @@ namespace BusFinderBackend.Controllers
             return BadRequest(new { error = "Invalid or expired oobCode." });
         }
 
-        public class AdminVerifyOobCodeRequest
-        {
-            public string? Email { get; set; }
-            public string? OobCode { get; set; }
-        }
-
-        public class AdminLocationUpdateRequest
-        {
-            public double? Latitude { get; set; }
-            public double? Longitude { get; set; }
-        }
-
         [HttpGet("get-id-by-email/{email}")]
+        [SwaggerOperation(Summary = "Get admin ID by email.")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(400)]
+        [ProducesResponseType(404)]
         public async Task<IActionResult> GetAdminIdByEmail(string email)
         {
             if (string.IsNullOrEmpty(email))
