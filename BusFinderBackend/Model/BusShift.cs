@@ -2,6 +2,7 @@ using Google.Cloud.Firestore;
 
 namespace BusFinderBackend.Model
 {
+    [FirestoreData]
     public class ShiftDetails
     {
         [FirestoreProperty]

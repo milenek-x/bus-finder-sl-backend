@@ -130,5 +130,6 @@ app.MapControllers();
 
 // Map the SignalR hub
 app.MapHub<BusHub>("/busHub");
+app.MapHub<PassengerHub>("/passengerHub");
 
 app.Run();
