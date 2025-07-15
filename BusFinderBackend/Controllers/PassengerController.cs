@@ -23,20 +23,20 @@ namespace BusFinderBackend.Controllers
         private readonly IConfiguration _configuration;
         private readonly EmailService _emailService;
         private readonly ILogger<PassengerController> _logger;
-        private readonly IHubContext<BusHub> _hubContext;
+        private readonly IHubContext<PassengerHub> _passengerHubContext;
 
         public PassengerController(
             PassengerService passengerService,
             IConfiguration configuration,
             EmailService emailService,
             ILogger<PassengerController> logger,
-            IHubContext<BusHub> hubContext)
+            IHubContext<PassengerHub> passengerHubContext)
         {
             _passengerService = passengerService;
             _configuration = configuration;
             _emailService = emailService;
             _logger = logger;
-            _hubContext = hubContext;
+            _passengerHubContext = passengerHubContext;
         }
 
         [HttpGet]
@@ -260,7 +260,7 @@ namespace BusFinderBackend.Controllers
         {
             await _passengerService.UpdateLocationAsync(passengerId, request.Latitude, request.Longitude);
             // Send the CORRECT SignalR message with actual coordinates
-            await _hubContext.Clients.All.SendAsync("PassengerLocationUpdated", 
+            await _passengerHubContext.Clients.All.SendAsync("PassengerLocationUpdated", 
                 passengerId, 
                 request.Latitude, 
                 request.Longitude);
