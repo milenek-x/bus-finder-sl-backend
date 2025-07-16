@@ -59,7 +59,15 @@ namespace BusFinderBackend.Services
         }
 
         // Method to get layers
-        private List<object> GetLayers(bool includeAllBusStops, bool includeAllBusRoutes, bool includeLiveAllBusLocations, bool includeLivePassengerLocation, bool includeAllBusesInSingleRoute, bool includeFamousPlaces)
+        private List<object> GetLayers(
+            bool includeAllBusStops,
+            bool includeAllBusRoutes,
+            bool includeLiveAllBusLocations,
+            bool includeLivePassengerLocation,
+            bool includeAllBusesInSingleRoute,
+            bool includeFamousPlaces,
+            string? busRoute = null
+        )
         {
             var layers = new List<object>();
 
@@ -159,6 +167,22 @@ namespace BusFinderBackend.Services
                 });
             }
 
+            if (!string.IsNullOrEmpty(busRoute))
+            {
+                layers.Add(new
+                {
+                    id = "singleBusRouteLayer",
+                    type = "geojson",
+                    sourceUrl = $"https://bus-finder-sl-a7c6a549fbb1.herokuapp.com/api/busroute/single/geojson/{busRoute}",
+                    renderOptions = new
+                    {
+                        strokeColor = "#FF0000",
+                        strokeWidth = 3,
+                        strokeOpacity = 0.8
+                    }
+                });
+            }
+
             return layers;
         }
 
@@ -185,25 +209,41 @@ namespace BusFinderBackend.Services
             };
         }
 
-        public object GetStaffViewLiveBusShiftConfiguration()
+        public object GetStaffViewLiveBusShiftConfiguration(string? busRoute = null)
         {
             return new
             {
                 googleMapsApiKey = _configuration["GoogleMaps:ApiKey"],
                 initialCameraPosition = GetInitialCameraPosition(),
                 mapOptions = GetCommonMapOptions(),
-                layers = GetLayers(true, false, false, false, false, false)
+                layers = GetLayers(
+                    includeAllBusStops: true,
+                    includeAllBusRoutes: false,
+                    includeLiveAllBusLocations: false,
+                    includeLivePassengerLocation: false,
+                    includeAllBusesInSingleRoute: false,
+                    includeFamousPlaces: false,
+                    busRoute: busRoute
+                )
             };
         }
 
-        public object GetPassengerViewLiveBusRouteConfiguration()
+        public object GetPassengerViewLiveBusRouteConfiguration(string? busRoute = null)
         {
             return new
             {
                 googleMapsApiKey = _configuration["GoogleMaps:ApiKey"],
                 initialCameraPosition = GetInitialCameraPosition(),
                 mapOptions = GetCommonMapOptions(),
-                layers = GetLayers(true, false, false, true, false, true)
+                layers = GetLayers(
+                    includeAllBusStops: true,
+                    includeAllBusRoutes: false,
+                    includeLiveAllBusLocations: false,
+                    includeLivePassengerLocation: true,
+                    includeAllBusesInSingleRoute: false,
+                    includeFamousPlaces: true,
+                    busRoute: busRoute // pass the parameter
+                )
             };
         }
 
