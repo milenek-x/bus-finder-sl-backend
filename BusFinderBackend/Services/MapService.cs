@@ -59,7 +59,7 @@ namespace BusFinderBackend.Services
         }
 
         // Method to get layers
-        private List<object> GetLayers(bool includeAllBusStops, bool includeAllBusRoutes, bool includeLiveAllBusLocations, bool includeLivePassengerLocation, bool includeSingleBusRoute, bool includeSingleBusLocation, bool includeAllBusesInSingleRoute, bool includeFamousPlaces, string? busRoute = null, string? bus = null, string? passenger = null)
+        private List<object> GetLayers(bool includeAllBusStops, bool includeAllBusRoutes, bool includeLiveAllBusLocations, bool includeLivePassengerLocation, bool includeAllBusesInSingleRoute, bool includeFamousPlaces)
         {
             var layers = new List<object>();
 
@@ -69,7 +69,7 @@ namespace BusFinderBackend.Services
                 {
                     id = "busStopsLayer",
                     type = "geojson",
-                    sourceUrl = "http://localhost:5176/api/busstop/geojson",
+                    sourceUrl = "https://bus-finder-sl-a7c6a549fbb1.herokuapp.com/api/busstop/geojson",
                     renderOptions = new
                     {
                         markerIconUrl = "https://placehold.co/32x32/FF0000/FFFFFF?text=ST",
@@ -84,7 +84,7 @@ namespace BusFinderBackend.Services
                 {
                     id = "busRoutesLayer",
                     type = "geojson",
-                    sourceUrl = "http://localhost:5176/api/busroute/geojson",
+                    sourceUrl = "https://bus-finder-sl-a7c6a549fbb1.herokuapp.com/api/busroute/geojson",
                     renderOptions = new
                     {
                         strokeColor = "#2C44BB",
@@ -100,7 +100,7 @@ namespace BusFinderBackend.Services
                 {
                     id = "liveBusLocationsLayer",
                     type = "realtime",
-                    signalRHubUrl = "/busHub",
+                    signalRHubUrl = "https://bus-finder-sl-a7c6a549fbb1.herokuapp.com/busHub",
                     renderOptions = new
                     {
                         markerIconUrl = "https://placehold.co/32x32/00FF00/000000?text=BUS",
@@ -109,13 +109,13 @@ namespace BusFinderBackend.Services
                 });
             }
 
-            if (includeLivePassengerLocation && !string.IsNullOrEmpty(passenger))
+            if (includeLivePassengerLocation)
             {
                 layers.Add(new
                 {
                     id = "passengerLayer",
                     type = "realtime",
-                    signalRHubUrl = "/passengerHub",
+                    signalRHubUrl = "https://bus-finder-sl-a7c6a549fbb1.herokuapp.com/passengerHub",
                     renderOptions = new
                     {
                         markerIconUrl = "https://placehold.co/32x32/000000/FFFFFF?text=ME",
@@ -127,36 +127,7 @@ namespace BusFinderBackend.Services
                 });
             }
 
-            if (includeSingleBusRoute && !string.IsNullOrEmpty(busRoute))
-            {
-                layers.Add(new
-                {
-                    id = "singleBusRouteLayer",
-                    type = "geojson",
-                    sourceUrl = $"http://localhost:5176/api/busroute/single/geojson/{busRoute}",
-                    renderOptions = new
-                    {
-                        strokeColor = "#FF0000",
-                        strokeWidth = 3,
-                        strokeOpacity = 0.8
-                    }
-                });
-            }
 
-            if (includeSingleBusLocation && !string.IsNullOrEmpty(bus))
-            {
-                layers.Add(new
-                {
-                    id = "singleBusLayer",
-                    type = "realtime",
-                    signalRHubUrl = "/busHub",
-                    renderOptions = new
-                    {
-                        markerIconUrl = "https://placehold.co/32x32/0000FF/FFFFFF?text=BUS",
-                        animateMovement = true
-                    }
-                });
-            }
 
             if (includeAllBusesInSingleRoute)
             {
@@ -164,7 +135,7 @@ namespace BusFinderBackend.Services
                 {
                     id = "busesInRouteLayer",
                     type = "realtime",
-                    signalRHubUrl = "/busesInRouteHub",
+                    signalRHubUrl = "https://bus-finder-sl-a7c6a549fbb1.herokuapp.com/busesInRouteHub",
                     renderOptions = new
                     {
                         markerIconUrl = "https://placehold.co/32x32/FFFF00/000000?text=BUS",
@@ -179,7 +150,7 @@ namespace BusFinderBackend.Services
                 {
                     id = "famousPlacesLayer",
                     type = "geojson",
-                    sourceUrl = "http://localhost:5176/api/famousplaces/geojson",
+                    sourceUrl = "https://bus-finder-sl-a7c6a549fbb1.herokuapp.com/api/famousplaces/geojson",
                     renderOptions = new
                     {
                         markerIconUrl = "https://placehold.co/32x32/0000FF/FFFFFF?text=FP",
@@ -199,7 +170,7 @@ namespace BusFinderBackend.Services
                 googleMapsApiKey = _configuration["GoogleMaps:ApiKey"],
                 initialCameraPosition = GetInitialCameraPosition(),
                 mapOptions = GetCommonMapOptions(),
-                layers = GetLayers(true, true, true, true, false, false, false, false) // Include all layers except single bus route, single bus, and buses in a single route
+                layers = GetLayers(true, true, true, true, false, false) // Include all layers except buses in a single route
             };
         }
 
@@ -210,111 +181,40 @@ namespace BusFinderBackend.Services
                 googleMapsApiKey = _configuration["GoogleMaps:ApiKey"],
                 initialCameraPosition = GetInitialCameraPosition(),
                 mapOptions = GetCommonMapOptions(),
-                layers = GetLayers(false, false, true, false, false, false, false, false) // Include live bus locations, single bus route, single bus, and buses in a single route
+                layers = GetLayers(false, false, true, false, false, false) // Include live bus locations only
             };
         }
 
-        public object GetStaffViewLiveBusShiftConfiguration(string busRoute, string bus)
+        public object GetStaffViewLiveBusShiftConfiguration()
         {
-            // Fetch the specific bus and bus route details from the repository or service
-            var busDetails = _busService.GetBusByNumberPlateAsync(bus).Result; // Assuming this method exists
-            var busRouteDetails = _busRouteService.GetBusRouteByNumberAsync(busRoute).Result; // Assuming this method exists
-
-            // Check if the bus and bus route exist
-            if (busDetails == null)
-            {
-                // Handle the error for bus not found
-                return new
-                {
-                    error = "Bus not found.",
-                    message = $"No bus found with the number plate: {bus}"
-                };
-            }
-
-            if (busRouteDetails == null)
-            {
-                // Handle the error for bus route not found
-                return new
-                {
-                    error = "Bus route not found.",
-                    message = $"No bus route found with the number: {busRoute}"
-                };
-            }
-
             return new
             {
                 googleMapsApiKey = _configuration["GoogleMaps:ApiKey"],
                 initialCameraPosition = GetInitialCameraPosition(),
                 mapOptions = GetCommonMapOptions(),
-                layers = GetLayers(true, false, false, false, true, true, false, false, busRoute, bus) // Pass the busRoute and bus
+                layers = GetLayers(true, false, false, false, false, false)
             };
         }
 
-        public object GetPassengerViewLiveBusRouteConfiguration(string busRoute, string bus, string passenger)
+        public object GetPassengerViewLiveBusRouteConfiguration()
         {
-            // Fetch the specific bus and bus route details from the repository or service
-            var busDetails = _busService.GetBusByNumberPlateAsync(bus).Result; // Assuming this method exists
-            var busRouteDetails = _busRouteService.GetBusRouteByNumberAsync(busRoute).Result; // Assuming this method exists
-            var passengerDetails = _passengerService.GetPassengerByIdAsync(passenger).Result; // Assuming this method exists
-
-            // Check if the bus, bus route, and passenger exist
-            if (busDetails == null)
-            {
-                return new
-                {
-                    error = "Bus not found.",
-                    message = $"No bus found with the number plate: {bus}"
-                };
-            }
-
-            if (busRouteDetails == null)
-            {
-                return new
-                {
-                    error = "Bus route not found.",
-                    message = $"No bus route found with the number: {busRoute}"
-                };
-            }
-
-            if (passengerDetails == null)
-            {
-                return new
-                {
-                    error = "Passenger not found.",
-                    message = $"No passenger found with the ID: {passenger}"
-                };
-            }
-
             return new
             {
                 googleMapsApiKey = _configuration["GoogleMaps:ApiKey"],
                 initialCameraPosition = GetInitialCameraPosition(),
                 mapOptions = GetCommonMapOptions(),
-                layers = GetLayers(true, false, false, true, true, true, false, true, busRoute, bus, passenger) // Pass the busRoute, bus, and passenger
+                layers = GetLayers(true, false, false, true, false, true)
             };
         }
 
-        public object GetPassengerViewLiveLocation(string passenger)
+        public object GetPassengerViewLiveLocation()
         {
-            // Fetch the passenger details from the service
-            var passengerDetails = _passengerService.GetPassengerByIdAsync(passenger).Result; // Assuming this method exists
-
-            // Check if the passenger exists
-            if (passengerDetails == null)
-            {
-                return new
-                {
-                    error = "Passenger not found.",
-                    message = $"No passenger found with the ID: {passenger}"
-                };
-            }
-
             return new
             {
                 googleMapsApiKey = _configuration["GoogleMaps:ApiKey"],
                 initialCameraPosition = GetInitialCameraPosition(),
                 mapOptions = GetCommonMapOptions(),
-                layers = GetLayers(false, false, false, true, false, false, false, false, null, null, passenger) // Only include live passenger location
+                layers = GetLayers(false, false, false, true, false, false)
             };
         }
     }

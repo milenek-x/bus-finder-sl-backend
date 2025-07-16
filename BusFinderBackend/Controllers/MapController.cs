@@ -43,9 +43,9 @@ namespace BusFinderBackend.Controllers
         [SwaggerOperation(Summary = "Get staff view configuration for live bus shift.")]
         [ProducesResponseType(200)]
         [ProducesResponseType(400)]
-        public IActionResult GetStaffViewLiveBusShiftConfiguration(string busRoute, string bus)
+        public IActionResult GetStaffViewLiveBusShiftConfiguration()
         {
-            var config = _mapService.GetStaffViewLiveBusShiftConfiguration(busRoute, bus);
+            var config = _mapService.GetStaffViewLiveBusShiftConfiguration();
             return Ok(config);
         }
 
@@ -53,9 +53,9 @@ namespace BusFinderBackend.Controllers
         [SwaggerOperation(Summary = "Get passenger view configuration for live bus route.")]
         [ProducesResponseType(200)]
         [ProducesResponseType(400)]
-        public IActionResult GetPassengerViewLiveBusRouteConfiguration(string busRoute, string bus, string passenger)
+        public IActionResult GetPassengerViewLiveBusRouteConfiguration()
         {
-            var config = _mapService.GetPassengerViewLiveBusRouteConfiguration(busRoute, bus, passenger);
+            var config = _mapService.GetPassengerViewLiveBusRouteConfiguration();
             return Ok(config);
         }
 
@@ -63,9 +63,9 @@ namespace BusFinderBackend.Controllers
         [SwaggerOperation(Summary = "Get passenger view configuration for live location only.")]
         [ProducesResponseType(200)]
         [ProducesResponseType(400)]
-        public IActionResult GetPassengerViewLiveLocationConfiguration(string passenger)
+        public IActionResult GetPassengerViewLiveLocationConfiguration()
         {
-            var config = _mapService.GetPassengerViewLiveLocation(passenger);
+            var config = _mapService.GetPassengerViewLiveLocation();
             return Ok(config);
         }
     }
