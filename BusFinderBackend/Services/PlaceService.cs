@@ -79,7 +79,9 @@ namespace BusFinderBackend.Services
                                     PlaceName = placeName,
                                     Latitude = location.Lat,
                                     Longitude = location.Lng,
-                                    LocationImage = (result?.Photos != null && result.Photos.Count > 0 && result.Photos[0]?.PhotoReference != null) ? result.Photos[0]!.PhotoReference! : string.Empty
+                                    LocationImage = (result?.Photos != null && result.Photos.Count > 0 && result.Photos[0]?.PhotoReference != null)
+                                        ? $"https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference={result.Photos[0]!.PhotoReference!}&key={apiKey}"
+                                        : string.Empty
                                 });
                             }
                         }
