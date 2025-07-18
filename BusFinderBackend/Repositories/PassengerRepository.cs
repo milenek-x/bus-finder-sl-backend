@@ -71,19 +71,12 @@ namespace BusFinderBackend.Repositories
             });
         }
 
-        public async Task AddFavoritePlaceAsync(string passengerId, string placeId)
+        public async Task AddFavoritePlaceAsync(string passengerId, string placeName)
         {
-            // Check if the place exists
-            var place = await _placesCollection.Document(placeId).GetSnapshotAsync();
-            if (!place.Exists)
-            {
-                throw new ArgumentException("Place does not exist.");
-            }
-
             var document = _passengersCollection.Document(passengerId);
             await document.UpdateAsync(new Dictionary<string, object>
             {
-                { "FavoritePlaces", FieldValue.ArrayUnion(placeId) }
+                { "FavoritePlaces", FieldValue.ArrayUnion(placeName) }
             });
         }
 
@@ -96,12 +89,12 @@ namespace BusFinderBackend.Repositories
             });
         }
 
-        public async Task RemoveFavoritePlaceAsync(string passengerId, string placeId)
+        public async Task RemoveFavoritePlaceAsync(string passengerId, string placeName)
         {
             var document = _passengersCollection.Document(passengerId);
             await document.UpdateAsync(new Dictionary<string, object>
             {
-                { "FavoritePlaces", FieldValue.ArrayRemove(placeId) }
+                { "FavoritePlaces", FieldValue.ArrayRemove(placeName) }
             });
         }
 

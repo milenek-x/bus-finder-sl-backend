@@ -98,11 +98,19 @@ namespace BusFinderBackend.Controllers
             // Update the database first
             await _busService.UpdateCurrentLocationAsync(numberPlate, request.CurrentLocationLatitude, request.CurrentLocationLongitude);
 
-            // Send the CORRECT SignalR message with actual coordinates
-            await _hubContext.Clients.All.SendAsync("BusLocationUpdated", 
-                numberPlate, 
-                request.CurrentLocationLatitude, 
-                request.CurrentLocationLongitude);
+            // If both latitude and longitude are -1, send RemoveBusLocation instead
+            if (request.CurrentLocationLatitude == -1 && request.CurrentLocationLongitude == -1)
+            {
+                await _hubContext.Clients.All.SendAsync("RemoveBusLocation", numberPlate);
+            }
+            else
+            {
+                // Send the CORRECT SignalR message with actual coordinates
+                await _hubContext.Clients.All.SendAsync("BusLocationUpdated", 
+                    numberPlate, 
+                    request.CurrentLocationLatitude, 
+                    request.CurrentLocationLongitude);
+            }
 
             return NoContent();
         }

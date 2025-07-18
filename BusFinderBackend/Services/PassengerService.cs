@@ -283,20 +283,29 @@ namespace BusFinderBackend.Services
             await _passengerRepository.RemoveFavoriteRouteAsync(passengerId, routeId);
         }
 
-        public async Task AddFavoritePlaceAsync(string passengerId, string placeId)
-        {
-            await _passengerRepository.AddFavoritePlaceAsync(passengerId, placeId);
-        }
-
-        public async Task RemoveFavoritePlaceAsync(string passengerId, string placeId)
+        public async Task AddFavoritePlaceAsync(string passengerId, string placeName)
         {
             var passenger = await _passengerRepository.GetPassengerByIdAsync(passengerId);
-            if (passenger == null || passenger.FavoritePlaces == null || !passenger.FavoritePlaces.Contains(placeId))
+            if (passenger == null)
+                throw new InvalidOperationException("Passenger not found.");
+            if (passenger.FavoritePlaces == null)
+                passenger.FavoritePlaces = new List<string>();
+            if (!passenger.FavoritePlaces.Contains(placeName))
+            {
+                passenger.FavoritePlaces.Add(placeName);
+                await _passengerRepository.UpdatePassengerAsync(passengerId, passenger);
+            }
+        }
+
+        public async Task RemoveFavoritePlaceAsync(string passengerId, string placeName)
+        {
+            var passenger = await _passengerRepository.GetPassengerByIdAsync(passengerId);
+            if (passenger == null || passenger.FavoritePlaces == null || !passenger.FavoritePlaces.Contains(placeName))
             {
                 throw new InvalidOperationException("The place is not in the passenger's favorite list.");
             }
-
-            await _passengerRepository.RemoveFavoritePlaceAsync(passengerId, placeId);
+            passenger.FavoritePlaces.Remove(placeName);
+            await _passengerRepository.UpdatePassengerAsync(passengerId, passenger);
         }
 
         public async Task UpdateLocationAsync(string passengerId, double? latitude, double? longitude)
