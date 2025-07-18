@@ -53,7 +53,7 @@ namespace BusFinderBackend.Services
         public async Task<List<Place>> SearchPlacesUsingGoogleApiAsync(string name)
         {
             var apiKey = _configuration["GoogleMaps:ApiKey"];
-            var url = $"https://maps.googleapis.com/maps/api/place/textsearch/json?query=Famous Places near {name}&key={apiKey}&type=point_of_interest";
+            var url = $"https://maps.googleapis.com/maps/api/place/textsearch/json?query=Tourist Attraction Places near {name}&key={apiKey}&type=point_of_interest";
 
             using (var httpClient = new HttpClient())
             {

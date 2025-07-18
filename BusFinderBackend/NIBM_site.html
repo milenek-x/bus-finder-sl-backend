@@ -1,0 +1,1037 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NIBM Best Innovative Business Model Award 2025</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom CSS for specific elements not easily handled by Tailwind or for overrides */
+        body {
+            font-family: 'Inter', sans-serif;
+            @apply bg-gray-100 text-gray-800;
+        }
+
+        /* Message Box Styling (Custom) */
+        #messageBox {
+            display: none;
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            @apply p-4 rounded-lg shadow-lg z-50 font-semibold text-center opacity-95 transition-opacity duration-300 ease-in-out;
+        }
+
+        #messageBox.info {
+            @apply bg-blue-100 text-blue-800 border border-blue-400;
+        }
+
+        #messageBox.success {
+            @apply bg-green-100 text-green-800 border border-green-400;
+        }
+
+        #messageBox.error {
+            @apply bg-red-100 text-red-800 border border-red-400;
+        }
+
+        /* Hero Section Background Image */
+        .hero-section {
+            background-image: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('https://placehold.co/1500x500/007bff/ffffff?text=NIBM+Awards+Banner');
+            background-size: cover;
+            background-position: center;
+        }
+
+        /* Custom underline for section titles */
+        .section-title::after {
+            content: '';
+            display: block;
+            width: 80px;
+            height: 4px;
+            @apply bg-blue-500 rounded-full mx-auto mt-4;
+        }
+
+        /* FAQ Accordion Styling */
+        .faq-item input[type="checkbox"] {
+            display: none;
+        }
+
+        .faq-item label {
+            @apply block cursor-pointer p-4 bg-gray-50 rounded-lg shadow-sm flex justify-between items-center transition-all duration-300 ease-in-out;
+        }
+
+        .faq-item label:hover {
+            @apply bg-gray-100;
+        }
+
+        .faq-item label::after {
+            content: '+';
+            @apply text-2xl font-bold transition-transform duration-300 ease-in-out;
+        }
+
+        .faq-item input[type="checkbox"]:checked + label::after {
+            content: '-';
+            transform: rotate(180deg);
+        }
+
+        .faq-content {
+            max-height: 0;
+            overflow: hidden;
+            @apply p-0 transition-all duration-500 ease-in-out;
+        }
+
+        .faq-item input[type="checkbox"]:checked ~ .faq-content {
+            max-height: 200px; /* Adjust as needed for content length */
+            @apply p-4 border-t border-gray-200 bg-white rounded-b-lg;
+        }
+
+        /* Hamburger Menu (for mobile) */
+        .hamburger {
+            @apply flex flex-col justify-around w-6 h-6 cursor-pointer md:hidden;
+        }
+
+        .hamburger span {
+            @apply block h-0.5 w-full bg-gray-700 rounded-full transition-all duration-300 ease-in-out;
+        }
+
+        .hamburger.active span:nth-child(1) {
+            transform: translateY(7px) rotate(45deg);
+        }
+
+        .hamburger.active span:nth-child(2) {
+            opacity: 0;
+        }
+
+        .hamburger.active span:nth-child(3) {
+            transform: translateY(-7px) rotate(-45deg);
+        }
+
+        /* Mobile Nav Overlay */
+        nav.mobile-active {
+            @apply flex flex-col absolute top-full left-0 w-full bg-white shadow-lg p-4 md:hidden;
+        }
+
+        /* Page Section Styling */
+        .page-section {
+            display: none; /* All page sections hidden by default */
+        }
+
+        .page-section.active {
+            display: block; /* Only active page section is shown */
+        }
+    </style>
+    <!-- No Firebase SDKs in this dummy version -->
+</head>
+<body class="min-h-screen flex flex-col">
+    <!-- Message Box for notifications -->
+    <div id="messageBox">
+        <span id="messageText"></span>
+    </div>
+
+    <header class="bg-white shadow-md py-4 sticky top-0 z-10">
+        <div class="container mx-auto flex justify-between items-center px-4">
+            <div class="logo">
+                <h1 class="text-3xl font-bold text-blue-600">NIBM Awards</h1>
+            </div>
+            <nav class="hidden md:flex space-x-6 items-center">
+                <ul class="flex space-x-6 items-center">
+                    <li><a href="#hero" class="text-gray-700 hover:text-blue-600 font-semibold transition-colors nav-link">Home</a></li>
+                    <li><a href="#about" class="text-gray-700 hover:text-blue-600 font-semibold transition-colors nav-link">About</a></li>
+                    <li><a href="#categories" class="text-gray-700 hover:text-blue-600 font-semibold transition-colors nav-link">Categories</a></li>
+                    <li><a href="#key-dates" class="text-gray-700 hover:text-blue-600 font-semibold transition-colors nav-link">Key Dates</a></li>
+                    <li><a href="#assessment-council" class="text-gray-700 hover:text-blue-600 font-semibold transition-colors nav-link">Assessment Council</a></li>
+                    <li><a href="#news" class="text-gray-700 hover:text-blue-600 font-semibold transition-colors nav-link">News</a></li>
+                    <li><a href="#faqs" class="text-gray-700 hover:text-blue-600 font-semibold transition-colors nav-link">FAQs</a></li>
+                    <li><a href="#contact" class="text-gray-700 hover:text-blue-600 font-semibold transition-colors nav-link">Contact</a></li>
+                    <li id="submitEntryNav" class="hidden"><a href="#entry-submission" class="bg-blue-600 text-white px-4 py-2 rounded-lg shadow-md hover:bg-blue-700 transition-all duration-300 transform hover:scale-105 nav-link">Submit Entry</a></li>
+                    <li id="judgePortalNav" class="hidden"><a href="#judge-portal" class="bg-purple-600 text-white px-4 py-2 rounded-lg shadow-md hover:bg-purple-700 transition-all duration-300 transform hover:scale-105 nav-link">Judge Portal</a></li>
+                    <li id="adminDashboardNav" class="hidden"><a href="#admin-dashboard" class="bg-red-600 text-white px-4 py-2 rounded-lg shadow-md hover:bg-red-700 transition-all duration-300 transform hover:scale-105 nav-link">Admin Dashboard</a></li>
+                    <li id="loginRegisterNav"><a href="#login-register" class="bg-green-600 text-white px-4 py-2 rounded-lg shadow-md hover:bg-green-700 transition-all duration-300 transform hover:scale-105 nav-link">Login / Register</a></li>
+                    <li id="logoutNav" class="hidden"><button id="logoutBtn" class="bg-gray-300 text-gray-800 px-4 py-2 rounded-lg shadow-md hover:bg-gray-400 transition-all duration-300 transform hover:scale-105">Logout</button></li>
+                </ul>
+            </nav>
+            <div class="hamburger md:hidden" id="hamburger-menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-grow">
+        <section id="hero" class="hero-section text-white text-center py-24 px-4 rounded-xl mx-auto my-8 shadow-2xl max-w-6xl page-section">
+            <div class="container mx-auto">
+                <h2 class="text-5xl font-extrabold mb-4 drop-shadow-lg">NIBM Best Innovative Business Model Award 2025</h2>
+                <p class="text-xl mb-8 max-w-3xl mx-auto">Recognizing groundbreaking business models across Start-ups, MSMEs, Large Corporations, and Public Enterprises.</p>
+                <a href="#entry-submission" class="inline-block bg-green-500 text-white px-8 py-4 rounded-full text-lg font-bold shadow-lg hover:bg-green-600 transition-all duration-300 transform hover:scale-105 nav-link">Learn More & Apply</a>
+            </div>
+        </section>
+
+        <section id="about" class="py-16 px-4 bg-white shadow-lg rounded-xl mx-auto my-8 max-w-6xl page-section">
+            <div class="container mx-auto text-center">
+                <h2 class="text-4xl font-bold text-blue-600 mb-10 section-title">About the Awards</h2>
+                <p class="text-lg leading-relaxed mb-6 max-w-3xl mx-auto">The NIBM Best Innovative Business Model Award is an annual competition designed to identify, celebrate, and promote businesses that demonstrate exceptional innovation in their operational models, market strategies, and value creation. Our goal is to foster a culture of innovation and provide a platform for businesses to gain national recognition, attract investment, and inspire others.</p>
+                <p class="text-lg leading-relaxed max-w-3xl mx-auto">We believe that innovative business models are the cornerstone of sustainable growth and economic development. This award aims to highlight those pioneering efforts that are reshaping industries and creating significant positive impact.</p>
+            </div>
+        </section>
+
+        <section id="categories" class="py-16 px-4 bg-gray-50 shadow-lg rounded-xl mx-auto my-8 max-w-6xl page-section">
+            <div class="container mx-auto text-center">
+                <h2 class="text-4xl font-bold text-blue-600 mb-10 section-title">Categories & Criteria</h2>
+                <p class="text-lg leading-relaxed mb-12 max-w-3xl mx-auto">The awards are open to businesses across four distinct sectors, each with tailored criteria to ensure fair and relevant assessment.</p>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                    <div class="bg-white p-6 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 transform hover:-translate-y-2 border-t-4 border-blue-500">
+                        <h3 class="text-2xl font-semibold text-blue-700 mb-3">Start-ups</h3>
+                        <p class="text-gray-700 mb-4">For emerging businesses (less than 5 years old) showcasing disruptive and scalable innovative business models with significant growth potential and market impact.</p>
+                        <ul class="list-disc list-inside text-left text-gray-600">
+                            <li>Novelty of business model</li>
+                            <li>Market validation & potential</li>
+                            <li>Scalability & sustainability</li>
+                            <li>Team strength</li>
+                        </ul>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 transform hover:-translate-y-2 border-t-4 border-green-500">
+                        <h3 class="text-2xl font-semibold text-green-700 mb-3">MSMEs</h3>
+                        <p class="text-gray-700 mb-4">Small and Medium Enterprises driving impactful change through innovation in processes, products, services, or market approaches.</p>
+                        <ul class="list-disc list-inside text-left text-gray-600">
+                            <li>Innovation in operations/strategy</li>
+                            <li>Impact on business performance</li>
+                            <li>Adaptability & resilience</li>
+                            <li>Contribution to local economy</li>
+                        </ul>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 transform hover:-translate-y-2 border-t-4 border-purple-500">
+                        <h3 class="text-2xl font-semibold text-purple-700 mb-3">Large Corporations</h3>
+                        <p class="text-gray-700 mb-4">For large enterprises that have successfully implemented innovative business models, driving significant transformation or creating new market segments.</p>
+                        <ul class="list-disc list-inside text-left text-gray-600">
+                            <li>Strategic innovation</li>
+                            <li>Market leadership & disruption</li>
+                            <li>Organizational impact</li>
+                            <li>Sustainability initiatives</li>
+                        </ul>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 transform hover:-translate-y-2 border-t-4 border-yellow-500">
+                        <h3 class="text-2xl font-semibold text-yellow-700 mb-3">Public Enterprises</h3>
+                        <p class="text-gray-700 mb-4">For government-owned entities that have introduced innovative models to improve public service delivery or operational efficiency.</p>
+                        <ul class="list-disc list-inside text-left text-gray-600">
+                            <li>Public value creation</li>
+                            <li>Efficiency & effectiveness</li>
+                            <li>Citizen engagement</li>
+                            <li>Scalability of impact</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="key-dates" class="py-16 px-4 bg-white shadow-lg rounded-xl mx-auto my-8 max-w-6xl page-section">
+            <div class="container mx-auto text-center">
+                <h2 class="text-4xl font-bold text-blue-600 mb-10 section-title">Key Dates & Timeline</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <div class="bg-gray-50 p-6 rounded-xl shadow-sm border border-gray-200">
+                        <h3 class="text-xl font-semibold text-blue-700 mb-2">RFQ Issued</h3>
+                        <p class="text-gray-700 text-lg">09 July 2025</p>
+                    </div>
+                    <div class="bg-gray-50 p-6 rounded-xl shadow-sm border border-gray-200">
+                        <h3 class="text-xl font-semibold text-blue-700 mb-2">Closing of Tender</h3>
+                        <p class="text-gray-700 text-lg">18th July 2025, 10:30 a.m.</p>
+                    </div>
+                    <div class="bg-gray-50 p-6 rounded-xl shadow-sm border border-gray-200">
+                        <h3 class="text-xl font-semibold text-blue-700 mb-2">Website Launch</h3>
+                        <p class="text-gray-700 text-lg">01 - 10 August 2025</p>
+                    </div>
+                    <div class="bg-gray-50 p-6 rounded-xl shadow-sm border border-gray-200">
+                        <h3 class="text-xl font-semibold text-blue-700 mb-2">Application Deadline</h3>
+                        <p class="text-gray-700 text-lg">30 September 2025</p>
+                    </div>
+                    <div class="bg-gray-50 p-6 rounded-xl shadow-sm border border-gray-200">
+                        <h3 class="text-xl font-semibold text-blue-700 mb-2">Judging Period</h3>
+                        <p class="text-gray-700 text-lg">October - November 2025</p>
+                    </div>
+                    <div class="bg-gray-50 p-6 rounded-xl shadow-sm border border-gray-200">
+                        <h3 class="text-xl font-semibold text-blue-700 mb-2">Awards Ceremony</h3>
+                        <p class="text-gray-700 text-lg">December 2025</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="assessment-council" class="py-16 px-4 bg-gray-50 shadow-lg rounded-xl mx-auto my-8 max-w-6xl page-section">
+            <div class="container mx-auto text-center">
+                <h2 class="text-4xl font-bold text-blue-600 mb-10 section-title">Assessment Council (Judge Board)</h2>
+                <p class="text-lg leading-relaxed mb-12 max-w-3xl mx-auto">Our esteemed Assessment Council comprises leading industry experts, seasoned entrepreneurs, distinguished academics, and visionary business leaders. They bring a wealth of experience and diverse perspectives to ensure a rigorous and fair evaluation process for all entries.</p>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <div class="bg-white p-6 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 transform hover:-translate-y-2">
+                        <img src="https://placehold.co/100x100/A0A0A0/FFFFFF?text=Photo" alt="Dr. Anya Sharma" class="rounded-full mx-auto mb-4">
+                        <h3 class="text-xl font-semibold text-blue-700 mb-1">Dr. Anya Sharma</h3>
+                        <p class="text-gray-600 mb-3"><strong>CEO, InnovateTech Solutions</strong></p>
+                        <p class="text-gray-700 text-sm news-excerpt">Dr. Sharma is a pioneer in sustainable technology and has led multiple successful ventures. Her expertise in disruptive innovation is invaluable...</p>
+                        <span class="read-more text-blue-500 cursor-pointer text-sm font-semibold mt-2 inline-block" data-full-text="Dr. Anya Sharma is the dynamic CEO of InnovateTech Solutions, a leading firm in sustainable technology. With over two decades of experience, she has successfully launched and scaled multiple ventures, earning a reputation as a visionary leader in disruptive innovation. Her deep understanding of market dynamics and sustainable practices makes her an invaluable member of our Assessment Council.">Read More</span>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 transform hover:-translate-y-2">
+                        <img src="https://placehold.co/100x100/A0A0A0/FFFFFF?text=Photo" alt="Mr. David Lee" class="rounded-full mx-auto mb-4">
+                        <h3 class="text-xl font-semibold text-blue-700 mb-1">Mr. David Lee</h3>
+                        <p class="text-gray-600 mb-3"><strong>Venture Capitalist, FutureFounders Fund</strong></p>
+                        <p class="text-gray-700 text-sm news-excerpt">Mr. Lee has a keen eye for promising startups and has invested in over 50 companies. His insights into market viability are crucial...</p>
+                        <span class="read-more text-blue-500 cursor-pointer text-sm font-semibold mt-2 inline-block" data-full-text="Mr. David Lee is a renowned Venture Capitalist at FutureFounders Fund, one of the most active early-stage investment firms. With a portfolio of over 50 successful investments, he possesses a keen eye for identifying promising startups and scalable business models. His strategic insights into market viability and investment potential are crucial to our judging process.">Read More</span>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 transform hover:-translate-y-2">
+                        <img src="https://placehold.co/100x100/A0A0A0/FFFFFF?text=Photo" alt="Prof. Elena Petrova" class="rounded-full mx-auto mb-4">
+                        <h3 class="text-xl font-semibold text-blue-700 mb-1">Prof. Elena Petrova</h3>
+                        <p class="text-gray-600 mb-3"><strong>Head of Business Innovation, National University</strong></p>
+                        <p class="text-gray-700 text-sm news-excerpt">Prof. Petrova's academic research focuses on emerging business models and economic impact. She brings a theoretical rigor to the panel...</p>
+                        <span class="read-more text-blue-500 cursor-pointer text-sm font-semibold mt-2 inline-block" data-full-text="Prof. Elena Petrova is the distinguished Head of Business Innovation at the National University. Her extensive academic research focuses on emerging business models, organizational resilience, and socio-economic impact. She brings a rigorous theoretical framework and an analytical approach to the Assessment Council, ensuring a comprehensive evaluation of all entries.">Read More</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="news" class="py-16 px-4 bg-white shadow-lg rounded-xl mx-auto my-8 max-w-6xl page-section">
+            <div class="container mx-auto text-center">
+                <h2 class="text-4xl font-bold text-blue-600 mb-10 section-title">News & Updates</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <div class="bg-gray-50 p-6 rounded-xl shadow-sm hover:shadow-md transition-all duration-300">
+                        <h3 class="text-xl font-semibold text-blue-700 mb-2">Applications Now Open!</h3>
+                        <p class="text-gray-700 text-sm news-excerpt">We are thrilled to announce that applications for the NIBM Best Innovative Business Model Award 2025 are officially open! Submit your groundbreaking ideas and get recognized...</p>
+                        <span class="read-more text-blue-500 cursor-pointer text-sm font-semibold mt-2 inline-block" data-full-text="We are thrilled to announce that applications for the NIBM Best Innovative Business Model Award 2025 are officially open! This is your chance to showcase your groundbreaking business models across all four categories: Start-ups, MSMEs, Large Corporations, and Public Enterprises. Don't miss this opportunity to gain recognition and valuable insights from industry leaders. Visit our 'Entry Submission' page to start your application today.">Read More</span>
+                    </div>
+                    <div class="bg-gray-50 p-6 rounded-xl shadow-sm hover:shadow-md transition-all duration-300">
+                        <h3 class="text-xl font-semibold text-blue-700 mb-2">Meet Our Assessment Council</h3>
+                        <p class="text-gray-700 text-sm news-excerpt">Get to know the esteemed panel of judges who will be evaluating this year's entries. Our Assessment Council comprises industry veterans, academics, and business leaders...</p>
+                        <span class="read-more text-blue-500 cursor-pointer text-sm font-semibold mt-2 inline-block" data-full-text="Get to know the esteemed panel of judges who will be evaluating this year's entries. Our Assessment Council comprises industry veterans, academics, and business leaders, bringing a wealth of experience and diverse perspectives to the judging process. Their expertise ensures a fair and thorough evaluation of all submissions.">Read More</span>
+                    </div>
+                    <div class="bg-gray-50 p-6 rounded-xl shadow-sm hover:shadow-md transition-all duration-300">
+                        <h3 class="text-xl font-semibold text-blue-700 mb-2">NIBM Partners with Global Innovation Forum</h3>
+                        <p class="text-gray-700 text-sm news-excerpt">We are excited to announce our strategic partnership with the Global Innovation Forum, enhancing the international reach and prestige of the NIBM Awards...</p>
+                        <span class="read-more text-blue-500 cursor-pointer text-sm font-semibold mt-2 inline-block" data-full-text="We are excited to announce our strategic partnership with the Global Innovation Forum (GIF), a leading international platform for innovation and entrepreneurship. This collaboration will significantly enhance the international reach and prestige of the NIBM Best Innovative Business Model Award, providing unparalleled exposure and networking opportunities for our winners.">Read More</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="faqs" class="py-16 px-4 bg-gray-50 shadow-lg rounded-xl mx-auto my-8 max-w-6xl page-section">
+            <div class="container mx-auto text-center">
+                <h2 class="text-4xl font-bold text-blue-600 mb-10 section-title">Frequently Asked Questions</h2>
+                <div class="max-w-3xl mx-auto text-left space-y-4">
+                    <div class="faq-item">
+                        <input type="checkbox" id="faq1">
+                        <label for="faq1" class="text-lg font-medium text-gray-800">Who is eligible to apply for the awards?</label>
+                        <div class="faq-content">
+                            <p class="text-gray-700">The awards are open to businesses across four distinct categories: Start-ups, MSMEs, Large Corporations, and Public Enterprises. Specific eligibility criteria are detailed in the 'Categories & Criteria' section.</p>
+                        </div>
+                    </div>
+                    <div class="faq-item">
+                        <input type="checkbox" id="faq2">
+                        <label for="faq2" class="text-lg font-medium text-gray-800">What is the application deadline?</label>
+                        <div class="faq-content">
+                            <p class="text-gray-700">The application deadline for NIBM Best Innovative Business Model Award 2025 is <strong>30 September 2025</strong>. Please refer to the 'Key Dates & Timeline' section for all important dates.</p>
+                        </div>
+                    </div>
+                    <div class="faq-item">
+                        <input type="checkbox" id="faq3">
+                        <label for="faq3" class="text-lg font-medium text-gray-800">Are there any fees for submission?</label>
+                        <div class="faq-content">
+                            <p class="text-gray-700">Currently, there are no fees for submission. However, this may be subject to change in future editions. Any updates will be clearly communicated on the website.</p>
+                        </div>
+                    </div>
+                    <div class="faq-item">
+                        <input type="checkbox" id="faq4">
+                        <label for="faq4" class="text-lg font-medium text-gray-800">How will entries be judged?</label>
+                        <div class="faq-content">
+                            <p class="text-gray-700">Entries will be evaluated by our esteemed Assessment Council based on innovation, impact, scalability, and sustainability. The judging process involves multiple rounds of assessment. More details on the judging criteria are available in the 'Categories & Criteria' section.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Login/Register Section -->
+        <section id="login-register" class="py-16 px-4 bg-white shadow-lg rounded-xl mx-auto my-8 max-w-6xl page-section">
+            <div class="container mx-auto text-center">
+                <h2 class="text-4xl font-bold text-blue-600 mb-10 section-title">Login / Register</h2>
+                <p id="userEmailDisplay" class="text-lg font-semibold text-gray-700 mb-6 hidden"></p>
+                <div class="max-w-md mx-auto bg-gray-50 p-8 rounded-xl shadow-md border border-gray-200">
+                    <form id="authForm">
+                        <div class="mb-5 text-left">
+                            <label for="authEmail" class="block text-gray-700 text-sm font-bold mb-2">Email:</label>
+                            <input type="email" id="authEmail" name="email" required class="shadow appearance-none border rounded-lg w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200">
+                        </div>
+                        <div class="mb-6 text-left">
+                            <label for="authPassword" class="block text-gray-700 text-sm font-bold mb-2">Password:</label>
+                            <input type="password" id="authPassword" name="password" required class="shadow appearance-none border rounded-lg w-full py-3 px-4 text-gray-700 mb-3 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200">
+                        </div>
+                        <button type="submit" id="authSubmitBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg focus:outline-none focus:shadow-outline transition-all duration-300 transform hover:scale-105 shadow-md">Login</button>
+                        <p class="text-center text-sm mt-4 text-gray-600">
+                            Don't have an account? <a href="#" id="switchToRegister" class="text-blue-600 hover:text-blue-800 font-semibold">Register here</a>
+                        </p>
+                        <p class="text-center text-sm mt-2 text-gray-600 hidden" id="switchToLoginContainer">
+                            Already have an account? <a href="#" id="switchToLogin" class="text-blue-600 hover:text-blue-800 font-semibold">Login here</a>
+                        </p>
+                        <p id="authStatus" class="mt-4 text-center font-bold"></p>
+                    </form>
+                </div>
+            </div>
+        </section>
+
+        <!-- Entry Submission Section -->
+        <section id="entry-submission" class="py-16 px-4 bg-gray-50 shadow-lg rounded-xl mx-auto my-8 max-w-6xl page-section hidden">
+            <div class="container mx-auto text-center">
+                <h2 class="text-4xl font-bold text-blue-600 mb-10 section-title">Submit Your Innovative Business Model</h2>
+                <div class="max-w-2xl mx-auto bg-white p-8 rounded-xl shadow-md border border-gray-200">
+                    <form id="entrySubmissionForm">
+                        <div class="mb-5 text-left">
+                            <label for="projectName" class="block text-gray-700 text-sm font-bold mb-2">Project/Business Name:</label>
+                            <input type="text" id="projectName" name="projectName" required class="shadow appearance-none border rounded-lg w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200">
+                        </div>
+                        <div class="mb-5 text-left">
+                            <label for="category" class="block text-gray-700 text-sm font-bold mb-2">Category:</label>
+                            <select id="category" name="category" required class="shadow appearance-none border rounded-lg w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200">
+                                <option value="">Select a Category</option>
+                                <option value="Start-ups">Start-ups</option>
+                                <option value="MSMEs">MSMEs</option>
+                                <option value="Large Corporations">Large Corporations</option>
+                                <option value="Public Enterprises">Public Enterprises</option>
+                            </select>
+                        </div>
+                        <div class="mb-5 text-left">
+                            <label for="description" class="block text-gray-700 text-sm font-bold mb-2">Brief Description of Business Model (Max 500 words):</label>
+                            <textarea id="description" name="description" rows="8" maxlength="500" required class="shadow appearance-none border rounded-lg w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"></textarea>
+                        </div>
+                        <div class="mb-6 text-left">
+                            <label for="attachments" class="block text-gray-700 text-sm font-bold mb-2">Upload Supporting Documents (e.g., Business Plan, Pitch Deck - Max 5MB per file):</label>
+                            <input type="file" id="attachments" name="attachments" multiple accept=".pdf,.doc,.docx,.ppt,.pptx" disabled class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-not-allowed">
+                            <small class="text-gray-500 mt-1 block">File upload is disabled in this demo. In a real application, this would use cloud storage (e.g., Firebase Storage).</small>
+                        </div>
+                        <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg focus:outline-none focus:shadow-outline transition-all duration-300 transform hover:scale-105 shadow-md">Submit Entry</button>
+                        <p id="entryFormStatus" class="mt-4 text-center font-bold"></p>
+                    </form>
+                </div>
+            </div>
+        </section>
+
+        <!-- Judge Portal Section (Mock) -->
+        <section id="judge-portal" class="py-16 px-4 bg-white shadow-lg rounded-xl mx-auto my-8 max-w-6xl page-section hidden">
+            <div class="container mx-auto text-center">
+                <h2 class="text-4xl font-bold text-blue-600 mb-10 section-title">Judge Portal</h2>
+                <p class="text-lg leading-relaxed mb-8 max-w-3xl mx-auto text-gray-700">Welcome, Judge! Here are the entries assigned for your evaluation. Please review each entry and provide your score and feedback.</p>
+                <div class="max-w-4xl mx-auto bg-gray-50 p-8 rounded-xl shadow-md border border-gray-200 text-left">
+                    <h3 class="text-2xl font-semibold text-blue-700 mb-6 border-b pb-4 border-gray-300">Assigned Entries</h3>
+                    <div id="entriesListJudge" class="space-y-6">
+                        <p class="text-gray-600">No entries assigned to you yet.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Admin Dashboard Section (Mock) -->
+        <section id="admin-dashboard" class="py-16 px-4 bg-gray-50 shadow-lg rounded-xl mx-auto my-8 max-w-6xl page-section hidden">
+            <div class="container mx-auto text-center">
+                <h2 class="text-4xl font-bold text-blue-600 mb-10 section-title">Admin Dashboard</h2>
+                <p class="text-lg leading-relaxed mb-8 max-w-3xl mx-auto text-gray-700">Manage all submitted entries and users. You can view details, assign judges, and export data.</p>
+                <div class="max-w-full mx-auto bg-white p-8 rounded-xl shadow-md border border-gray-200 text-left">
+                    <h3 class="text-2xl font-semibold text-blue-700 mb-6 border-b pb-4 border-gray-300">All Submitted Entries</h3>
+                    <div id="entriesListAdmin" class="space-y-6">
+                        <p class="text-gray-600">No entries submitted yet.</p>
+                    </div>
+
+                    <h3 class="text-2xl font-semibold text-blue-700 mt-12 mb-6 border-b pb-4 border-gray-300">User Management (Mock)</h3>
+                    <div class="bg-gray-50 p-6 rounded-lg border border-gray-200">
+                        <p class="text-gray-700 mb-4">This section would allow you to manage user accounts, assign roles (Admin, Judge, Applicant), and view user details.</p>
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full bg-white border border-gray-300 rounded-lg">
+                                <thead>
+                                    <tr class="bg-gray-200 text-gray-700 uppercase text-sm leading-normal">
+                                        <th class="py-3 px-6 text-left">User ID</th>
+                                        <th class="py-3 px-6 text-left">Email</th>
+                                        <th class="py-3 px-6 text-left">Role</th>
+                                        <th class="py-3 px-6 text-center">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="text-gray-600 text-sm font-light">
+                                    <tr class="border-b border-gray-200 hover:bg-gray-100">
+                                        <td class="py-3 px-6 text-left whitespace-nowrap">user_abc123</td>
+                                        <td class="py-3 px-6 text-left">applicant1@example.com</td>
+                                        <td class="py-3 px-6 text-left">Applicant</td>
+                                        <td class="py-3 px-6 text-center">
+                                            <button class="bg-blue-500 text-white px-3 py-1 rounded-md text-xs hover:bg-blue-600">Edit</button>
+                                            <button class="bg-red-500 text-white px-3 py-1 rounded-md text-xs hover:bg-red-600 ml-2">Delete</button>
+                                        </td>
+                                    </tr>
+                                    <tr class="border-b border-gray-200 hover:bg-gray-100">
+                                        <td class="py-3 px-6 text-left whitespace-nowrap">judge_xyz789</td>
+                                        <td class="py-3 px-6 text-left">judge@example.com</td>
+                                        <td class="py-3 px-6 text-left">Judge</td>
+                                        <td class="py-3 px-6 text-center">
+                                            <button class="bg-blue-500 text-white px-3 py-1 rounded-md text-xs hover:bg-blue-600">Edit</button>
+                                            <button class="bg-red-500 text-white px-3 py-1 rounded-md text-xs hover:bg-red-600 ml-2">Delete</button>
+                                        </td>
+                                    </tr>
+                                    <!-- More mock users here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="contact" class="py-16 px-4 bg-white shadow-lg rounded-xl mx-auto my-8 max-w-6xl page-section">
+            <div class="container mx-auto text-center">
+                <h2 class="text-4xl font-bold text-blue-600 mb-10 section-title">Contact Us</h2>
+                <p class="text-lg leading-relaxed mb-8 max-w-3xl mx-auto text-gray-700">Have questions or need assistance? Reach out to us using the form below, or find our contact details.</p>
+                <div class="max-w-md mx-auto bg-gray-50 p-8 rounded-xl shadow-md border border-gray-200">
+                    <form id="contactForm">
+                        <div class="mb-5 text-left">
+                            <label for="name" class="block text-gray-700 text-sm font-bold mb-2">Name:</label>
+                            <input type="text" id="name" name="name" required class="shadow appearance-none border rounded-lg w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200">
+                        </div>
+                        <div class="mb-5 text-left">
+                            <label for="email" class="block text-gray-700 text-sm font-bold mb-2">Email:</label>
+                            <input type="email" id="email" name="email" required class="shadow appearance-none border rounded-lg w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200">
+                        </div>
+                        <div class="mb-6 text-left">
+                            <label for="message" class="block text-gray-700 text-sm font-bold mb-2">Message:</label>
+                            <textarea id="message" name="message" rows="5" required class="shadow appearance-none border rounded-lg w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"></textarea>
+                        </div>
+                        <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg focus:outline-none focus:shadow-outline transition-all duration-300 transform hover:scale-105 shadow-md">Send Message</button>
+                        <p id="contactFormStatus" class="mt-4 text-center font-bold"></p>
+                    </form>
+                </div>
+            </div>
+        </section>
+
+        <!-- Privacy Policy / Terms of Use (Placeholder) -->
+        <section id="privacy-terms" class="py-16 px-4 bg-gray-50 shadow-lg rounded-xl mx-auto my-8 max-w-6xl page-section">
+            <div class="container mx-auto text-center">
+                <h2 class="text-4xl font-bold text-blue-600 mb-10 section-title">Privacy Policy / Terms of Use</h2>
+                <div class="max-w-4xl mx-auto text-left bg-white p-8 rounded-xl shadow-md border border-gray-200">
+                    <h3 class="text-2xl font-semibold text-gray-800 mb-4">Privacy Policy</h3>
+                    <p class="text-gray-700 mb-6">Your privacy is important to us. This policy explains how we collect, use, and protect your personal data when you use our website and services. We are committed to ensuring the confidentiality and security of the information you provide.</p>
+                    <p class="text-gray-700 mb-6">We collect data necessary for award applications, user authentication, and website improvement. This includes contact information, project details, and usage data. We do not share your personal information with third parties without your explicit consent, except as required by law.</p>
+                    <h3 class="text-2xl font-semibold text-gray-800 mb-4">Terms of Use</h3>
+                    <p class="text-gray-700 mb-6">By accessing and using the NIBM Best Innovative Business Model Award website, you agree to comply with and be bound by the following terms and conditions of use. These terms govern your use of the website and all services provided herein.</p>
+                    <p class="text-700">You agree not to use the website for any unlawful purpose or in any way that could damage, disable, or impair the site. All content on this website, including text, graphics, logos, and images, is the property of NIBM or its content suppliers and protected by copyright laws.</p>
+                    <p class="text-gray-700 italic mt-4">Full policies are available upon request or via dedicated links in a production environment.</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="bg-gray-800 text-white py-8 px-4 text-center rounded-xl mx-auto my-8 max-w-6xl shadow-inner">
+        <div class="container mx-auto">
+            <p class="mb-4">&copy; 2025 NIBM. All rights reserved.</p>
+            <ul class="flex flex-wrap justify-center space-x-6 text-sm">
+                <li><a href="#privacy-terms" class="hover:text-blue-400 transition-colors nav-link">Privacy Policy</a></li>
+                <li><a href="#privacy-terms" class="hover:text-blue-400 transition-colors nav-link">Terms of Use</a></li>
+                <li><a href="#faqs" class="hover:text-blue-400 transition-colors nav-link">FAQs</a></li>
+                <li><a href="#" class="hover:text-blue-400 transition-colors">Newsletter Sign-up</a></li>
+                <li><a href="#" class="hover:text-blue-400 transition-colors">Social Media</a></li>
+            </ul>
+        </div>
+    </footer>
+
+    <script>
+        // Custom message box instead of alert()
+        function showMessage(message, type = 'info') {
+            const messageBox = document.getElementById('messageBox');
+            const messageText = document.getElementById('messageText');
+            if (messageBox && messageText) {
+                messageText.textContent = message;
+                messageBox.className = `message-box ${type}`; // Add type class for styling (e.g., 'success', 'error')
+                messageBox.style.display = 'block';
+                setTimeout(() => {
+                    messageBox.style.display = 'none';
+                }, 5000); // Hide after 5 seconds
+            }
+        }
+
+        // Dummy User Data and State
+        const DUMMY_USERS = [
+            { uid: 'applicant123', email: 'applicant@test.com', password: 'password', role: 'applicant' },
+            { uid: 'judge456', email: 'judge@test.com', password: 'password', role: 'judge' },
+            { uid: 'admin789', email: 'admin@test.com', password: 'password', role: 'admin' }
+        ];
+        let currentUser = null; // Represents the logged-in user
+        let dummyEntries = []; // Stores submitted entries in memory for this session
+
+        // Function to show a specific page section
+        function showPage(pageId) {
+            // Hide all page sections first
+            document.querySelectorAll('.page-section').forEach(section => {
+                section.classList.remove('active');
+            });
+
+            // Show the requested page section
+            const targetSection = document.getElementById(pageId);
+            if (targetSection) {
+                targetSection.classList.add('active');
+                window.scrollTo({ top: 0, behavior: 'smooth' }); // Scroll to top of the new section
+            } else {
+                console.warn(`Page section with ID "${pageId}" not found.`);
+                // Fallback to home page if target not found
+                document.getElementById('hero').classList.add('active');
+            }
+        }
+
+        // Function to update UI based on current user state and active page
+        function updateUIForAuthStatus() {
+            const loginSection = document.getElementById('login-register');
+            const entrySubmissionSection = document.getElementById('entry-submission');
+            const adminDashboardSection = document.getElementById('admin-dashboard'); // Corrected ID
+            const judgePortalSection = document.getElementById('judge-portal'); // Corrected ID
+            const userEmailDisplay = document.getElementById('userEmailDisplay');
+            const logoutBtn = document.getElementById('logoutBtn');
+            const loginRegisterNav = document.getElementById('loginRegisterNav');
+            const submitEntryNav = document.getElementById('submitEntryNav');
+            const judgePortalNav = document.getElementById('judgePortalNav');
+            const adminDashboardNav = document.getElementById('adminDashboardNav');
+
+            if (currentUser) {
+                userEmailDisplay.textContent = `Logged in as: ${currentUser.email} (ID: ${currentUser.uid}) (Role: ${currentUser.role})`;
+                userEmailDisplay.classList.remove('hidden');
+                logoutBtn.classList.remove('hidden');
+                loginRegisterNav.classList.add('hidden');
+                submitEntryNav.classList.remove('hidden');
+
+                // Ensure only relevant authenticated sections are visible in nav
+                if (currentUser.role === 'admin') {
+                    adminDashboardNav.classList.remove('hidden');
+                    judgePortalNav.classList.add('hidden'); // Admin doesn't need Judge Portal link
+                } else if (currentUser.role === 'judge') {
+                    judgePortalNav.classList.remove('hidden');
+                    adminDashboardNav.classList.add('hidden'); // Judge doesn't need Admin Dashboard link
+                } else { // Applicant
+                    adminDashboardNav.classList.add('hidden');
+                    judgePortalNav.classList.add('hidden');
+                }
+
+                // If currently on a restricted page, redirect to a default page after login
+                const currentHash = window.location.hash.substring(1);
+                const isAuthPage = ['login-register', 'entry-submission', 'judge-portal', 'admin-dashboard'].includes(currentHash);
+
+                if (!isAuthPage) {
+                    // If not on an auth page, stay on current page but ensure visibility of auth content
+                    // This is handled by showPage() and the hidden/shown classes on sections
+                } else if (currentUser.role === 'admin' && currentHash !== 'admin-dashboard') {
+                    showPage('admin-dashboard');
+                } else if (currentUser.role === 'judge' && currentHash !== 'judge-portal') {
+                    showPage('judge-portal');
+                } else if (currentUser.role === 'applicant' && currentHash !== 'entry-submission') {
+                    showPage('entry-submission');
+                } else {
+                    // If already on the correct page for the role, just ensure it's active
+                    showPage(currentHash || 'hero');
+                }
+
+                // Refresh dashboard/portal data after login
+                if (currentUser.role === 'admin') fetchEntriesForAdmin();
+                if (currentUser.role === 'judge') fetchEntriesForJudge(currentUser.uid);
+
+            } else { // Not logged in
+                userEmailDisplay.classList.add('hidden');
+                logoutBtn.classList.add('hidden');
+                loginRegisterNav.classList.remove('hidden');
+                submitEntryNav.classList.add('hidden');
+                judgePortalNav.classList.add('hidden');
+                adminDashboardNav.classList.add('hidden');
+
+                // If currently on an authenticated page, redirect to login or home
+                const currentHash = window.location.hash.substring(1);
+                const isAuthPage = ['entry-submission', 'judge-portal', 'admin-dashboard'].includes(currentHash);
+
+                if (isAuthPage) {
+                    showPage('login-register'); // Redirect to login if on a restricted page
+                } else {
+                    showPage(currentHash || 'hero'); // Stay on current public page or go to home
+                }
+            }
+        }
+
+        // Dummy Authentication Functions
+        async function registerUser(email, password) {
+            const existingUser = DUMMY_USERS.find(user => user.email === email);
+            if (existingUser) {
+                showMessage('Registration failed: User with this email already exists.', 'error');
+                throw new Error('User already exists');
+            }
+
+            const newUser = {
+                uid: 'dummy_' + Math.random().toString(36).substring(2, 11),
+                email: email,
+                password: password,
+                role: 'applicant'
+            };
+            DUMMY_USERS.push(newUser);
+            currentUser = newUser;
+            updateUIForAuthStatus();
+            showMessage('Registration successful! You are now logged in as an applicant.', 'success');
+            return newUser;
+        }
+
+        async function loginUser(email, password) {
+            const user = DUMMY_USERS.find(u => u.email === email && u.password === password);
+            if (user) {
+                currentUser = user;
+                updateUIForAuthStatus();
+                showMessage('Login successful!', 'success');
+                return user;
+            } else {
+                showMessage('Login failed: Invalid email or password.', 'error');
+                throw new Error('Invalid credentials');
+            }
+        }
+
+        async function logoutUser() {
+            currentUser = null;
+            updateUIForAuthStatus();
+            showMessage('Logged out successfully.', 'info');
+            window.location.hash = 'hero'; // Redirect to home after logout
+        }
+
+        // Dummy Data Functions for Entries
+        async function submitEntry(entryData) {
+            if (!currentUser) {
+                showMessage('Please log in to submit an entry.', 'error');
+                return false;
+            }
+            const newEntry = {
+                id: 'entry_' + Math.random().toString(36).substring(2, 11),
+                ...entryData,
+                applicantId: currentUser.uid,
+                applicantEmail: currentUser.email,
+                submissionDate: new Date().toISOString(),
+                status: 'Pending Review',
+                assignedJudgeId: null
+            };
+            dummyEntries.push(newEntry);
+            showMessage('Entry submitted successfully! (Dummy data saved)', 'success');
+            // Re-fetch entries for admin/judge if they are logged in
+            if (currentUser.role === 'admin') fetchEntriesForAdmin();
+            if (currentUser.role === 'judge') fetchEntriesForJudge(currentUser.uid);
+            return true;
+        }
+
+        function fetchEntriesForAdmin() {
+            const entriesListAdmin = document.getElementById('entriesListAdmin');
+            if (!entriesListAdmin) return;
+
+            entriesListAdmin.innerHTML = '';
+            if (dummyEntries.length === 0) {
+                entriesListAdmin.innerHTML = '<p class="text-gray-600">No entries submitted yet.</p>';
+                return;
+            }
+            dummyEntries.forEach(entry => {
+                const entryItem = document.createElement('div');
+                entryItem.className = 'bg-gray-50 p-4 rounded-lg shadow-sm mb-4 border border-gray-200';
+                entryItem.innerHTML = `
+                    <h4 class="text-lg font-semibold text-blue-700">${entry.projectName || 'Untitled Project'}</h4>
+                    <p class="text-sm text-gray-600"><strong>ID:</strong> ${entry.id}</p>
+                    <p class="text-sm text-gray-600"><strong>Applicant:</strong> ${entry.applicantEmail} (ID: ${entry.applicantId})</p>
+                    <p class="text-sm text-gray-600"><strong>Category:</strong> ${entry.category || 'N/A'}</p>
+                    <p class="text-sm text-gray-600"><strong>Status:</strong> <span class="font-medium text-purple-600">${entry.status}</span></p>
+                    <p class="text-sm text-gray-600"><strong>Submitted On:</strong> ${new Date(entry.submissionDate).toLocaleString()}</p>
+                    <p class="mt-2 text-gray-700">${entry.description ? entry.description.substring(0, 150) + '...' : 'No description provided.'}</p>
+                    <div class="mt-3 flex space-x-2">
+                        <button class="bg-blue-500 text-white px-3 py-1 rounded-md text-sm hover:bg-blue-600 transition-colors">View Details</button>
+                        <button class="bg-yellow-500 text-white px-3 py-1 rounded-md text-sm hover:bg-yellow-600 transition-colors">Assign Judge</button>
+                        <button class="bg-red-500 text-white px-3 py-1 rounded-md text-sm hover:bg-red-600 transition-colors">Delete</button>
+                    </div>
+                `;
+                entriesListAdmin.appendChild(entryItem);
+            });
+        }
+
+        function fetchEntriesForJudge(judgeId) {
+            const entriesListJudge = document.getElementById('entriesListJudge');
+            if (!entriesListJudge) return;
+
+            entriesListJudge.innerHTML = '';
+            // For demo, judge sees all pending entries or those they have already scored
+            const assignedEntries = dummyEntries.filter(entry =>
+                entry.status === 'Pending Review' || entry.scoredBy === judgeId
+            );
+            if (assignedEntries.length === 0) {
+                entriesListJudge.innerHTML = '<p class="text-gray-600">No entries assigned to you yet.</p>';
+                return;
+            }
+            assignedEntries.forEach(entry => {
+                const entryItem = document.createElement('div');
+                entryItem.className = 'bg-gray-50 p-4 rounded-lg shadow-sm mb-4 border border-gray-200';
+                entryItem.innerHTML = `
+                    <h4 class="text-lg font-semibold text-blue-700">${entry.projectName || 'Untitled Project'}</h4>
+                    <p class="text-sm text-gray-600"><strong>Applicant:</strong> ${entry.applicantEmail}</p>
+                    <p class="text-sm text-gray-600"><strong>Category:</strong> ${entry.category || 'N/A'}</p>
+                    <p class="mt-2 text-gray-700">${entry.description ? entry.description.substring(0, 150) + '...' : 'No description provided.'}</p>
+                    <div class="mt-3">
+                        <h5 class="font-semibold text-gray-700 mb-2">Score Entry:</h5>
+                        <div class="flex items-center space-x-2 mb-2">
+                            <label for="score-${entry.id}" class="text-sm">Score (1-100):</label>
+                            <input type="number" id="score-${entry.id}" min="1" max="100" value="${entry.score || ''}" class="w-20 p-1 border rounded-md text-sm">
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <label for="feedback-${entry.id}" class="text-sm">Feedback:</label>
+                            <textarea id="feedback-${entry.id}" rows="2" class="flex-grow p-1 border rounded-md text-sm">${entry.feedback || ''}</textarea>
+                        </div>
+                        <button class="submit-score-btn bg-green-500 text-white px-4 py-2 rounded-md text-sm mt-3 hover:bg-green-600 transition-colors" data-entry-id="${entry.id}">Submit Score</button>
+                    </div>
+                `;
+                entriesListJudge.appendChild(entryItem);
+            });
+
+            // Attach event listeners to newly created score buttons
+            document.querySelectorAll('.submit-score-btn').forEach(button => {
+                button.addEventListener('click', async (e) => {
+                    const entryId = e.target.dataset.entryId;
+                    const score = document.getElementById(`score-${entryId}`).value;
+                    const feedback = document.getElementById(`feedback-${entryId}`).value;
+
+                    if (!score || score < 1 || score > 100) {
+                        showMessage('Please enter a valid score between 1 and 100.', 'error');
+                        return;
+                    }
+
+                    // Find the entry and update its score/feedback (in dummy data)
+                    const entryToUpdate = dummyEntries.find(entry => entry.id === entryId);
+                    if (entryToUpdate) {
+                        entryToUpdate.score = parseInt(score);
+                        entryToUpdate.feedback = feedback;
+                        entryToUpdate.scoredBy = currentUser.uid;
+                        entryToUpdate.scoreDate = new Date().toISOString();
+                        entryToUpdate.status = 'Scored';
+                        showMessage(`Score submitted for Entry ID: ${entryId} (Dummy Data)`, 'success');
+                        // Re-render judge list to reflect changes
+                        fetchEntriesForJudge(currentUser.uid);
+                        // Also update admin view if admin is logged in
+                        if (DUMMY_USERS.find(u => u.email === 'admin@test.com' && u === currentUser)) {
+                            fetchEntriesForAdmin();
+                        }
+                    } else {
+                        showMessage('Error: Entry not found.', 'error');
+                    }
+                });
+            });
+        }
+
+        // --- DOM Content Loaded and Event Listeners ---
+        document.addEventListener('DOMContentLoaded', () => {
+            // Handle initial page load based on URL hash
+            const initialHash = window.location.hash.substring(1);
+            showPage(initialHash || 'hero'); // Default to 'hero' if no hash
+
+            // Update UI based on initial auth status
+            updateUIForAuthStatus();
+
+            // Listen for hash changes (e.g., browser back/forward buttons)
+            window.addEventListener('hashchange', () => {
+                const newHash = window.location.hash.substring(1);
+                showPage(newHash || 'hero');
+                updateUIForAuthStatus(); // Re-evaluate visibility of auth-dependent sections
+            });
+
+            // Hamburger menu functionality
+            const hamburger = document.getElementById('hamburger-menu');
+            const nav = document.querySelector('header nav');
+
+            if (hamburger && nav) {
+                hamburger.addEventListener('click', () => {
+                    nav.classList.toggle('mobile-active');
+                    hamburger.classList.toggle('active');
+                });
+
+                // IMPORTANT: Use event delegation or target specific nav-links for page switching
+                // This listener needs to handle page switching AND mobile menu closing
+                document.querySelectorAll('nav ul li a.nav-link').forEach(link => { // Target only nav-links
+                    link.addEventListener('click', (e) => {
+                        e.preventDefault(); // Prevent default anchor jump
+
+                        const targetId = link.getAttribute('href').substring(1);
+                        showPage(targetId); // Show the target page
+
+                        if (nav.classList.contains('mobile-active')) {
+                            nav.classList.remove('mobile-active');
+                            hamburger.classList.remove('active');
+                        }
+                    });
+                });
+            }
+
+            // "Read More" functionality for news items and judge profiles
+            document.querySelectorAll('.news-item .read-more, #assessment-council .read-more').forEach(button => {
+                const excerpt = button.previousElementSibling;
+                const fullText = button.dataset.fullText;
+                const originalExcerpt = excerpt.textContent;
+
+                button.addEventListener('click', () => {
+                    if (button.textContent === 'Read More') {
+                        excerpt.textContent = fullText;
+                        button.textContent = 'Show Less';
+                    } else {
+                        excerpt.textContent = originalExcerpt;
+                        button.textContent = 'Read More';
+                    }
+                });
+            });
+
+            // FAQ Accordion functionality
+            document.querySelectorAll('.faq-item input[type="checkbox"]').forEach(checkbox => {
+                checkbox.addEventListener('change', () => {
+                    document.querySelectorAll('.faq-item input[type="checkbox"]:checked').forEach(otherCheckbox => {
+                        if (otherCheckbox !== checkbox) {
+                            otherCheckbox.checked = false;
+                        }
+                    });
+                });
+            });
+
+            // --- Authentication Form Logic ---
+            const authForm = document.getElementById('authForm');
+            const authEmailInput = document.getElementById('authEmail');
+            const authPasswordInput = document.getElementById('authPassword');
+            const authSubmitBtn = document.getElementById('authSubmitBtn');
+            const authStatus = document.getElementById('authStatus');
+            const switchToRegisterBtn = document.getElementById('switchToRegister');
+            const switchToLoginContainer = document.getElementById('switchToLoginContainer');
+            const switchToLoginBtn = document.getElementById('switchToLogin');
+            const logoutBtn = document.getElementById('logoutBtn');
+
+            let isRegisterMode = false;
+
+            if (authForm) {
+                switchToRegisterBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    isRegisterMode = true;
+                    authSubmitBtn.textContent = 'Register';
+                    switchToRegisterBtn.classList.add('hidden');
+                    switchToLoginContainer.classList.remove('hidden');
+                    authStatus.textContent = ''; // Clear status
+                });
+
+                switchToLoginBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    isRegisterMode = false;
+                    authSubmitBtn.textContent = 'Login';
+                    switchToRegisterBtn.classList.remove('hidden');
+                    switchToLoginContainer.classList.add('hidden');
+                    authStatus.textContent = ''; // Clear status
+                });
+
+                authForm.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    const email = authEmailInput.value.trim();
+                    const password = authPasswordInput.value.trim();
+
+                    if (!email || !password) {
+                        authStatus.textContent = 'Please enter email and password.';
+                        authStatus.style.color = 'red';
+                        return;
+                    }
+
+                    if (isRegisterMode) {
+                        try {
+                            await registerUser(email, password);
+                            authStatus.textContent = 'Registration successful! You are logged in.';
+                            authStatus.style.color = 'green';
+                            authForm.reset();
+                        } catch (error) {
+                            authStatus.textContent = error.message;
+                            authStatus.style.color = 'red';
+                        }
+                    } else {
+                        try {
+                            await loginUser(email, password);
+                            authStatus.textContent = 'Login successful!';
+                            authStatus.style.color = 'green';
+                            authForm.reset();
+                        } catch (error) {
+                            authStatus.textContent = error.message;
+                            authStatus.style.color = 'red';
+                        }
+                    }
+                });
+            }
+
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', async (e) => {
+                    e.preventDefault();
+                    await logoutUser();
+                });
+            }
+
+            // --- Entry Submission Form Logic ---
+            const entrySubmissionForm = document.getElementById('entrySubmissionForm');
+            const entryFormStatus = document.getElementById('entryFormStatus');
+
+            if (entrySubmissionForm) {
+                entrySubmissionForm.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+
+                    if (!currentUser) {
+                        showMessage('You must be logged in to submit an entry.', 'error');
+                        return;
+                    }
+
+                    const projectName = document.getElementById('projectName').value.trim();
+                    const category = document.getElementById('category').value;
+                    const description = document.getElementById('description').value.trim();
+                    // const attachments = document.getElementById('attachments').files; // For future file upload
+
+                    if (!projectName || !category || !description) {
+                        entryFormStatus.textContent = 'Please fill in all required fields.';
+                        entryFormStatus.style.color = 'red';
+                        return;
+                    }
+
+                    const entryData = {
+                        projectName,
+                        category,
+                        description,
+                        // fileUrls: [] // Placeholder for file URLs if implemented
+                    };
+
+                    const success = await submitEntry(entryData);
+                    if (success) {
+                        entryFormStatus.textContent = 'Your entry has been submitted successfully!';
+                        entryFormStatus.style.color = 'green';
+                        entrySubmissionForm.reset();
+                    } else {
+                        entryFormStatus.textContent = 'There was an error submitting your entry. Please try again.';
+                        entryFormStatus.style.color = 'red';
+                    }
+                });
+            }
+
+            // --- Contact Form Logic ---
+            const contactForm = document.getElementById('contactForm');
+            const contactFormStatus = document.getElementById('contactFormStatus');
+
+            if (contactForm) {
+                contactForm.addEventListener('submit', function(event) {
+                    event.preventDefault();
+
+                    const name = document.getElementById('name').value.trim();
+                    const email = document.getElementById('email').value.trim();
+                    const message = document.getElementById('message').value.trim();
+
+                    if (name === '' || email === '' || message === '') {
+                        contactFormStatus.textContent = 'Please fill in all fields.';
+                        contactFormStatus.style.color = 'red';
+                        return;
+                    }
+
+                    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                    if (!emailRegex.test(email)) {
+                        contactFormStatus.textContent = 'Please enter a valid email address.';
+                        contactFormStatus.style.color = 'red';
+                        return;
+                    }
+
+                    showMessage('Contact message sent successfully! (This is a demo, no actual send occurred.)', 'success');
+                    contactFormStatus.textContent = 'Message sent successfully! (This is a demo, no actual send occurred.)';
+                    contactFormStatus.style.color = 'green';
+                    contactForm.reset();
+                });
+            }
+        });
+    </script>
+</body>
+</html>
