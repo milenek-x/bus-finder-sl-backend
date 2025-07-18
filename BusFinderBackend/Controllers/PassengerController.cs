@@ -224,26 +224,26 @@ namespace BusFinderBackend.Controllers
         [SwaggerOperation(Summary = "Add a favorite place for a passenger.")]
         [ProducesResponseType(200)]
         [ProducesResponseType(400)]
-        public async Task<IActionResult> AddFavoritePlace(string passengerId, [FromBody] FavoritePlaceRequestDto request)
+        public async Task<IActionResult> AddFavoritePlace(string passengerId, [FromBody] Place place)
         {
-            if (string.IsNullOrEmpty(request.PlaceName))
+            if (place == null || string.IsNullOrEmpty(place.PlaceName))
             {
-                return BadRequest(new { error = "placeName is required." });
+                return BadRequest(new { error = "place object with name is required." });
             }
 
-            await _passengerService.AddFavoritePlaceAsync(passengerId, request.PlaceName);
+            await _passengerService.AddFavoritePlaceAsync(passengerId, place);
             return Ok(new { message = "Favorite place added." });
         }
 
-        [HttpDelete("{passengerId}/favorite-places/{placeName}")]
+        [HttpDelete("{passengerId}/favorite-places")]
         [SwaggerOperation(Summary = "Remove a favorite place for a passenger.")]
         [ProducesResponseType(200)]
         [ProducesResponseType(400)]
-        public async Task<IActionResult> RemoveFavoritePlace(string passengerId, string placeName)
+        public async Task<IActionResult> RemoveFavoritePlace(string passengerId, [FromBody] Place place)
         {
             try
             {
-                await _passengerService.RemoveFavoritePlaceAsync(passengerId, placeName);
+                await _passengerService.RemoveFavoritePlaceAsync(passengerId, place);
                 return Ok(new { message = "Favorite place removed." });
             }
             catch (InvalidOperationException ex)

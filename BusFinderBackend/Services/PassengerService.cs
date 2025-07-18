@@ -283,28 +283,30 @@ namespace BusFinderBackend.Services
             await _passengerRepository.RemoveFavoriteRouteAsync(passengerId, routeId);
         }
 
-        public async Task AddFavoritePlaceAsync(string passengerId, string placeName)
+        public async Task AddFavoritePlaceAsync(string passengerId, Place place)
         {
             var passenger = await _passengerRepository.GetPassengerByIdAsync(passengerId);
             if (passenger == null)
                 throw new InvalidOperationException("Passenger not found.");
             if (passenger.FavoritePlaces == null)
-                passenger.FavoritePlaces = new List<string>();
-            if (!passenger.FavoritePlaces.Contains(placeName))
+                passenger.FavoritePlaces = new List<Place>();
+            // Check for duplicate by name and coordinates
+            if (!passenger.FavoritePlaces.Any(p => p.PlaceName == place.PlaceName && p.Latitude == place.Latitude && p.Longitude == place.Longitude))
             {
-                passenger.FavoritePlaces.Add(placeName);
+                passenger.FavoritePlaces.Add(place);
                 await _passengerRepository.UpdatePassengerAsync(passengerId, passenger);
             }
         }
 
-        public async Task RemoveFavoritePlaceAsync(string passengerId, string placeName)
+        public async Task RemoveFavoritePlaceAsync(string passengerId, Place place)
         {
             var passenger = await _passengerRepository.GetPassengerByIdAsync(passengerId);
-            if (passenger == null || passenger.FavoritePlaces == null || !passenger.FavoritePlaces.Contains(placeName))
-            {
+            if (passenger == null || passenger.FavoritePlaces == null)
+                throw new InvalidOperationException("Passenger not found or no favorite places.");
+            var toRemove = passenger.FavoritePlaces.FirstOrDefault(p => p.PlaceName == place.PlaceName && p.Latitude == place.Latitude && p.Longitude == place.Longitude);
+            if (toRemove == null)
                 throw new InvalidOperationException("The place is not in the passenger's favorite list.");
-            }
-            passenger.FavoritePlaces.Remove(placeName);
+            passenger.FavoritePlaces.Remove(toRemove);
             await _passengerRepository.UpdatePassengerAsync(passengerId, passenger);
         }
 
@@ -374,7 +376,7 @@ namespace BusFinderBackend.Services
             return passenger?.PassengerId; // Return the passenger ID or null if not found
         }
 
-        public async Task<(List<string>? FavoritePlaces, List<string>? FavoriteRoutes)> GetFavoritesAsync(string passengerId)
+        public async Task<(List<Place>? FavoritePlaces, List<string>? FavoriteRoutes)> GetFavoritesAsync(string passengerId)
         {
             var passenger = await _passengerRepository.GetPassengerByIdAsync(passengerId);
             if (passenger == null)
@@ -382,7 +384,7 @@ namespace BusFinderBackend.Services
             return (passenger.FavoritePlaces, passenger.FavoriteRoutes);
         }
 
-        public async Task<List<string>?> GetFavoritePlacesAsync(string passengerId)
+        public async Task<List<Place>?> GetFavoritePlacesAsync(string passengerId)
         {
             var passenger = await _passengerRepository.GetPassengerByIdAsync(passengerId);
             if (passenger == null)

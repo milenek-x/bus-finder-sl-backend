@@ -27,7 +27,7 @@ namespace BusFinderBackend.Model
         public List<string>? FavoriteRoutes { get; set; } // List of favorite route IDs
 
         [FirestoreProperty]
-        public List<string>? FavoritePlaces { get; set; } // List of favorite place names or IDs
+        public List<Place>? FavoritePlaces { get; set; } // List of favorite place objects
 
         [FirestoreProperty]
         [JsonPropertyName("CurrentLocationLatitude")]
