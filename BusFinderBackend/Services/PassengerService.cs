@@ -373,5 +373,29 @@ namespace BusFinderBackend.Services
             var passenger = await _passengerRepository.GetPassengerByEmailAsync(email);
             return passenger?.PassengerId; // Return the passenger ID or null if not found
         }
+
+        public async Task<(List<string>? FavoritePlaces, List<string>? FavoriteRoutes)> GetFavoritesAsync(string passengerId)
+        {
+            var passenger = await _passengerRepository.GetPassengerByIdAsync(passengerId);
+            if (passenger == null)
+                throw new InvalidOperationException("Passenger not found.");
+            return (passenger.FavoritePlaces, passenger.FavoriteRoutes);
+        }
+
+        public async Task<List<string>?> GetFavoritePlacesAsync(string passengerId)
+        {
+            var passenger = await _passengerRepository.GetPassengerByIdAsync(passengerId);
+            if (passenger == null)
+                throw new InvalidOperationException("Passenger not found.");
+            return passenger.FavoritePlaces;
+        }
+
+        public async Task<List<string>?> GetFavoriteRoutesAsync(string passengerId)
+        {
+            var passenger = await _passengerRepository.GetPassengerByIdAsync(passengerId);
+            if (passenger == null)
+                throw new InvalidOperationException("Passenger not found.");
+            return passenger.FavoriteRoutes;
+        }
     }
 } 

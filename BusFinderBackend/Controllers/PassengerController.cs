@@ -379,5 +379,57 @@ namespace BusFinderBackend.Controllers
 
             return Ok(new { passengerId });
         }
+
+        [HttpGet("{passengerId}/favorites")]
+        [SwaggerOperation(Summary = "Get a passenger's favorite places and routes.")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(400)]
+        [ProducesResponseType(404)]
+        public async Task<IActionResult> GetFavorites(string passengerId)
+        {
+            try
+            {
+                var (favoritePlaces, favoriteRoutes) = await _passengerService.GetFavoritesAsync(passengerId);
+                return Ok(new { favoritePlaces, favoriteRoutes });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return NotFound(new { error = ex.Message });
+            }
+        }
+
+        [HttpGet("{passengerId}/favorite-places")]
+        [SwaggerOperation(Summary = "Get a passenger's favorite places.")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(404)]
+        public async Task<IActionResult> GetFavoritePlaces(string passengerId)
+        {
+            try
+            {
+                var favoritePlaces = await _passengerService.GetFavoritePlacesAsync(passengerId);
+                return Ok(new { favoritePlaces });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return NotFound(new { error = ex.Message });
+            }
+        }
+
+        [HttpGet("{passengerId}/favorite-routes")]
+        [SwaggerOperation(Summary = "Get a passenger's favorite routes.")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(404)]
+        public async Task<IActionResult> GetFavoriteRoutes(string passengerId)
+        {
+            try
+            {
+                var favoriteRoutes = await _passengerService.GetFavoriteRoutesAsync(passengerId);
+                return Ok(new { favoriteRoutes });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return NotFound(new { error = ex.Message });
+            }
+        }
     }
 } 
