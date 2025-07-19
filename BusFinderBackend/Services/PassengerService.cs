@@ -333,6 +333,25 @@ namespace BusFinderBackend.Services
             await _passengerRepository.UpdatePassengerAsync(passengerId, passenger);
         }
 
+        public async Task RemoveFavoritePlaceAsync(string passengerId, string placeName, double latitude, double longitude)
+        {
+            var passenger = await _passengerRepository.GetPassengerByIdAsync(passengerId);
+            if (passenger == null || passenger.FavoritePlaces == null)
+                throw new InvalidOperationException("Passenger not found or no favorite places.");
+            
+            var toRemove = passenger.FavoritePlaces.FirstOrDefault(p => 
+                p.PlaceName == placeName && 
+                p.Latitude == latitude && 
+                p.Longitude == longitude);
+                
+            if (toRemove == null)
+                throw new InvalidOperationException("The place is not in the passenger's favorite list.");
+                
+            passenger.FavoritePlaces.Remove(toRemove);
+            await _passengerRepository.UpdatePassengerAsync(passengerId, passenger);
+            // Note: The place is NOT removed from the places collection - only from the passenger's favorites
+        }
+
         public async Task UpdateLocationAsync(string passengerId, double? latitude, double? longitude)
         {
             var passenger = await _passengerRepository.GetPassengerByIdAsync(passengerId);

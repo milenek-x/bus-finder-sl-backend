@@ -239,11 +239,16 @@ namespace BusFinderBackend.Controllers
         [SwaggerOperation(Summary = "Remove a favorite place for a passenger.")]
         [ProducesResponseType(200)]
         [ProducesResponseType(400)]
-        public async Task<IActionResult> RemoveFavoritePlace(string passengerId, [FromBody] Place place)
+        public async Task<IActionResult> RemoveFavoritePlace(string passengerId, [FromBody] FavoritePlaceRemoveRequestDto request)
         {
+            if (request == null || string.IsNullOrEmpty(request.PlaceName))
+            {
+                return BadRequest(new { error = "Place name, latitude, and longitude are required." });
+            }
+
             try
             {
-                await _passengerService.RemoveFavoritePlaceAsync(passengerId, place);
+                await _passengerService.RemoveFavoritePlaceAsync(passengerId, request.PlaceName, request.Latitude, request.Longitude);
                 return Ok(new { message = "Favorite place removed." });
             }
             catch (InvalidOperationException ex)
