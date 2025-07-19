@@ -22,5 +22,10 @@ namespace BusFinderBackend.Services
         {
             await _hubContext.Clients.User(userId).SendAsync("ReceiveNotification", message);
         }
+
+        public async Task NotifyAllAsync(string message)
+        {
+            await _hubContext.Clients.All.SendAsync("ReceiveNotification", message);
+        }
     }
 } 
