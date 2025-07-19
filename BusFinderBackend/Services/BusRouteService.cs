@@ -32,9 +32,14 @@ namespace BusFinderBackend.Services
             return _busRouteRepository.GetAllBusRoutesAsync();
         }
 
-        public Task<BusRoute?> GetBusRouteByNumberAsync(string routeNumber)
+        public async Task<BusRoute?> GetBusRouteByNumberAsync(string routeNumber)
         {
-            return _busRouteRepository.GetBusRouteByNumberAsync(routeNumber);
+            var route = await _busRouteRepository.GetBusRouteByNumberAsync(routeNumber);
+            if (route != null)
+            {
+                route.RouteDistance = await CalculateRouteDistanceAsync(route.RouteStops);
+            }
+            return route;
         }
 
         public async Task<(bool Success, string? ErrorCode, string? ErrorMessage)> AddBusRouteAsync(BusRoute busRoute)
