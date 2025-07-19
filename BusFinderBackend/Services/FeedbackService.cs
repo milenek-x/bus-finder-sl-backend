@@ -64,7 +64,7 @@ namespace BusFinderBackend.Services
 
             await _feedbackRepository.AddFeedbackAsync(feedback);
             // Notify all (admins, staff, etc.)
-            await _notificationService.NotifyAllAsync($"New feedback received: {feedback.Subject}");
+            await _notificationService.NotifyAllAsync($"New feedback received: {feedback.Subject}", "FeedbackReceived");
             return (true, null, null, feedback, feedback.FeedbackId);
         }
 

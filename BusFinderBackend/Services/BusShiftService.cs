@@ -59,7 +59,7 @@ namespace BusFinderBackend.Services
 
             await _busShiftRepository.AddBusShiftAsync(busShift);
             // Notify staff group
-            await _notificationService.NotifyAllAsync($"A new shift has been created: {busShift.ShiftId}");
+            await _notificationService.NotifyAllAsync($"A new shift has been created: {busShift.ShiftId}", "ShiftCreated");
         }
 
         public async Task UpdateBusShiftAsync(string shiftId, BusShift busShift)
@@ -77,7 +77,7 @@ namespace BusFinderBackend.Services
             }
 
             await _busShiftRepository.UpdateBusShiftAsync(shiftId, busShift);
-            await _notificationService.NotifyAllAsync($"Shift has been updated: {shiftId}");
+            await _notificationService.NotifyAllAsync($"Shift has been updated: {shiftId}", "ShiftUpdated");
         }
 
         public async Task RemoveNormalShiftAsync(string shiftId)
@@ -87,7 +87,7 @@ namespace BusFinderBackend.Services
                 throw new ArgumentException($"No BusShift found with ShiftId {shiftId}");
             busShift.Normal = null;
             await _busShiftRepository.UpdateBusShiftAsync(shiftId, busShift);
-            await _notificationService.NotifyAllAsync($"Normal shift removed: {shiftId}");
+            await _notificationService.NotifyAllAsync($"Normal shift removed: {shiftId}", "NormalShiftRemoved");
         }
 
         public async Task RemoveReverseShiftAsync(string shiftId)
@@ -97,13 +97,13 @@ namespace BusFinderBackend.Services
                 throw new ArgumentException($"No BusShift found with ShiftId {shiftId}");
             busShift.Reverse = null;
             await _busShiftRepository.UpdateBusShiftAsync(shiftId, busShift);
-            await _notificationService.NotifyAllAsync($"Reverse shift removed: {shiftId}");
+            await _notificationService.NotifyAllAsync($"Reverse shift removed: {shiftId}", "ReverseShiftRemoved");
         }
 
         public async Task DeleteBusShiftAsync(string shiftId)
         {
             await _busShiftRepository.DeleteBusShiftAsync(shiftId);
-            await _notificationService.NotifyAllAsync($"Shift has been deleted: {shiftId}");
+            await _notificationService.NotifyAllAsync($"Shift has been deleted: {shiftId}", "ShiftDeleted");
         }
 
         public async Task<List<DTOs.BusShift.BusShiftDto>> GetBusShiftsByRouteNumberAsync(string routeNumber, string date, string time)
@@ -203,12 +203,12 @@ namespace BusFinderBackend.Services
 
         public async Task NotifyShiftStartAsync(string staffId)
         {
-            await _notificationService.NotifyAllAsync($"Staff {staffId} has started their shift.");
+            await _notificationService.NotifyAllAsync($"Staff {staffId} has started their shift.", "ShiftStarted");
         }
 
         public async Task NotifyShiftEndAsync(string staffId)
         {
-            await _notificationService.NotifyAllAsync($"Staff {staffId} has ended their shift.");
+            await _notificationService.NotifyAllAsync($"Staff {staffId} has ended their shift.", "ShiftEnded");
         }
     }
 } 

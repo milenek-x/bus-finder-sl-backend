@@ -89,7 +89,7 @@ namespace BusFinderBackend.Services
             bus.CurrentLocationLongitude = 0.0; // Default value
 
             await _busRepository.AddBusAsync(bus);
-            await _notificationService.NotifyAllAsync($"You have been added to the bus {bus.NumberPlate}.");
+            await _notificationService.NotifyAllAsync($"You have been added to the bus {bus.NumberPlate}.", "BusAdded");
         }
 
         public async Task UpdateBusAsync(string numberPlate, Bus bus)
@@ -150,7 +150,7 @@ namespace BusFinderBackend.Services
         {
             // Additional business logic can be added here if needed
             await _busRepository.DeleteBusAsync(numberPlate);
-            await _notificationService.NotifyAllAsync($"Bus {numberPlate} has been deleted.");
+            await _notificationService.NotifyAllAsync($"Bus {numberPlate} has been deleted.", "BusDeleted");
         }
 
         public async Task UpdateBusCapacityAsync(string numberPlate, bool busCapacity)
@@ -158,7 +158,7 @@ namespace BusFinderBackend.Services
             await _busRepository.UpdateBusCapacityAsync(numberPlate, busCapacity);
             if (busCapacity)
             {
-                await _notificationService.NotifyAllAsync($"Bus {numberPlate} is now full.");
+                await _notificationService.NotifyAllAsync($"Bus {numberPlate} is now full.", "BusFull");
             }
         }
 
@@ -167,7 +167,7 @@ namespace BusFinderBackend.Services
             await _busRepository.UpdateSosStatusAsync(numberPlate, sosStatus);
             if (sosStatus)
             {
-                await _notificationService.NotifyAllAsync($"SOS! Bus {numberPlate} has sent an SOS signal.");
+                await _notificationService.NotifyAllAsync($"SOS! Bus {numberPlate} has sent an SOS signal.", "BusSOS");
             }
         }
 
