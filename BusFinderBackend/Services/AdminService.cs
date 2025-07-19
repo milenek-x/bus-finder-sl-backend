@@ -182,6 +182,21 @@ namespace BusFinderBackend.Services
             }
         }
 
+        public async Task<bool> VerifyOobCodeAsync(string email, string oobCode)
+        {
+            // Retrieve the stored oobCode for the given email
+            string? storedOobCode = await _adminRepository.RetrieveOobCodeAsync(email);
+
+            // Compare the provided oobCode with the stored one
+            if (storedOobCode == oobCode)
+            {
+                // If valid, delete the oobCode from Firestore
+                await _adminRepository.DeleteOobCodeAsync(email);
+                return true;
+            }
+            return false;
+        }
+
         private string ExtractOobCodeFromLink(string link)
         {
             if (string.IsNullOrEmpty(link))
