@@ -89,6 +89,7 @@ namespace BusFinderBackend.Services
             bus.CurrentLocationLongitude = 0.0; // Default value
 
             await _busRepository.AddBusAsync(bus);
+            await _notificationService.NotifyAllAsync($"You have been added to the bus {bus.NumberPlate}.");
         }
 
         public async Task UpdateBusAsync(string numberPlate, Bus bus)
@@ -149,11 +150,16 @@ namespace BusFinderBackend.Services
         {
             // Additional business logic can be added here if needed
             await _busRepository.DeleteBusAsync(numberPlate);
+            await _notificationService.NotifyAllAsync($"Bus {numberPlate} has been deleted.");
         }
 
         public async Task UpdateBusCapacityAsync(string numberPlate, bool busCapacity)
         {
             await _busRepository.UpdateBusCapacityAsync(numberPlate, busCapacity);
+            if (busCapacity)
+            {
+                await _notificationService.NotifyAllAsync($"Bus {numberPlate} is now full.");
+            }
         }
 
         public async Task UpdateSosStatusAsync(string numberPlate, bool sosStatus)
