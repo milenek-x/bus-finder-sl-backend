@@ -11,6 +11,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.AspNetCore.Builder;
 using BusFinderBackend.Hubs;
+using Microsoft.Extensions.Logging;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -87,7 +88,16 @@ builder.Services.AddScoped<BusService>();
 builder.Services.AddScoped<BusShiftRepository>();
 builder.Services.AddScoped<BusShiftService>();
 builder.Services.AddScoped<PassengerRepository>();
-builder.Services.AddScoped<PassengerService>();
+builder.Services.AddScoped<PassengerService>(provider =>
+    new PassengerService(
+        provider.GetRequiredService<PassengerRepository>(),
+        provider.GetRequiredService<PlaceRepository>(),
+        provider.GetRequiredService<IConfiguration>(),
+        provider.GetRequiredService<EmailService>(),
+        provider.GetRequiredService<ILogger<PassengerService>>(),
+        provider.GetRequiredService<DriveImageService>()
+    )
+);
 builder.Services.AddScoped<DriveImageService>();
 builder.Services.AddScoped<MapService>();
 builder.Services.AddScoped<FeedbackRepository>();

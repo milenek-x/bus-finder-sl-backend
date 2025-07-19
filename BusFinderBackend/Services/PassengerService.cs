@@ -15,14 +15,16 @@ namespace BusFinderBackend.Services
     public class PassengerService
     {
         private readonly PassengerRepository _passengerRepository;
+        private readonly PlaceRepository _placeRepository;
         private readonly IConfiguration _configuration;
         private readonly EmailService _emailService;
         private readonly ILogger<PassengerService> _logger;
         private readonly DriveImageService _driveImageService;
 
-        public PassengerService(PassengerRepository passengerRepository, IConfiguration configuration, EmailService emailService, ILogger<PassengerService> logger, DriveImageService driveImageService)
+        public PassengerService(PassengerRepository passengerRepository, PlaceRepository placeRepository, IConfiguration configuration, EmailService emailService, ILogger<PassengerService> logger, DriveImageService driveImageService)
         {
             _passengerRepository = passengerRepository;
+            _placeRepository = placeRepository;
             _configuration = configuration;
             _emailService = emailService;
             _logger = logger;
@@ -293,6 +295,27 @@ namespace BusFinderBackend.Services
             // Check for duplicate by name and coordinates
             if (!passenger.FavoritePlaces.Any(p => p.PlaceName == place.PlaceName && p.Latitude == place.Latitude && p.Longitude == place.Longitude))
             {
+                // Generate place ID using the format: placeName-latitude-longitude
+                // Sanitize the place name to remove special characters that might cause issues in document IDs
+                var sanitizedPlaceName = System.Text.RegularExpressions.Regex.Replace(place.PlaceName, @"[^a-zA-Z0-9\s-]", "");
+                sanitizedPlaceName = sanitizedPlaceName.Replace(" ", "-");
+                var placeId = $"{sanitizedPlaceName}-{place.Latitude}-{place.Longitude}";
+                place.PlaceId = placeId;
+                
+                // Check if the place already exists in the places collection
+                var existingPlace = await _placeRepository.GetPlaceByIdAsync(placeId);
+                if (existingPlace == null)
+                {
+                    // Add the place to the places collection only if it doesn't exist
+                    await _placeRepository.AddPlaceAsync(place);
+                }
+                else
+                {
+                    // Use the existing place data
+                    place = existingPlace;
+                }
+                
+                // Add to passenger's favorite places
                 passenger.FavoritePlaces.Add(place);
                 await _passengerRepository.UpdatePassengerAsync(passengerId, passenger);
             }
