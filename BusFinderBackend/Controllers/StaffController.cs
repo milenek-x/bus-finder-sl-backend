@@ -204,77 +204,12 @@ namespace BusFinderBackend.Controllers
             public string? OobCode { get; set; }
         }
 
-        [HttpPost("upload-profile-picture")]
-        [SwaggerOperation(Summary = "Upload a profile picture for a staff member.")]
-        [ProducesResponseType(200)]
-        [ProducesResponseType(400)]
-        public async Task<IActionResult> UploadProfilePicture(IFormFile file)
+        [HttpPut("{staffId}/avatar")]
+        [SwaggerOperation(Summary = "Update the avatar for a staff member.")]
+        public async Task<IActionResult> UpdateAvatar(string staffId, [FromBody] int avatarId)
         {
-            if (file == null || file.Length == 0)
-            {
-                return BadRequest("No file uploaded.");
-            }
-
-            try
-            {
-                using (var stream = file.OpenReadStream())
-                {
-                    var fileName = $"profile_picture_{DateTime.UtcNow.Ticks}.jpg";
-                    var link = await _staffService.UploadProfilePictureAsync(stream, fileName);
-                    return Ok(new { link });
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error uploading profile picture.");
-                return StatusCode(500, new { error = "Failed to upload profile picture.", message = ex.Message });
-            }
-        }
-
-        [HttpGet("{staffId}/profile-picture")]
-        [SwaggerOperation(Summary = "Get the profile picture of a staff member.")]
-        [ProducesResponseType(200)]
-        [ProducesResponseType(400)]
-        [ProducesResponseType(404)]
-        public async Task<IActionResult> GetProfilePicture(string staffId)
-        {
-            var staff = await _staffService.GetStaffByIdAsync(staffId);
-            if (staff == null || string.IsNullOrEmpty(staff.ProfilePicture))
-            {
-                return NotFound(new { error = "Admin not found or profile picture not set." });
-            }
-
-            var imageBytes = await _staffService.GetProfilePictureAsync(staff.ProfilePicture);
-            return File(imageBytes, "image/jpeg"); // Return the image as a file response
-        }
-
-        [HttpPut("{staffId}/update-profile-picture")]
-        [SwaggerOperation(Summary = "Update the profile picture of a staff member.")]
-        [ProducesResponseType(200)]
-        [ProducesResponseType(400)]
-        public async Task<IActionResult> UpdateProfilePicture(string staffId, IFormFile file)
-        {
-            if (file == null || file.Length == 0)
-            {
-                return BadRequest("No file uploaded.");
-            }
-
-            try
-            {
-                using (var stream = new MemoryStream())
-                {
-                    await file.CopyToAsync(stream);
-                    stream.Position = 0;
-                    var fileName = $"profile_picture_{staffId}_{DateTime.UtcNow.Ticks}.jpg";
-                    var link = await _staffService.UpdateProfilePictureAsync(staffId, stream, fileName);
-                    return Ok(new { link });
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error updating profile picture for staff {StaffId}.", staffId);
-                return StatusCode(500, new { error = "Failed to update profile picture.", message = ex.Message });
-            }
+            await _staffService.UpdateAvatarAsync(staffId, avatarId);
+            return Ok(new { message = "Avatar updated successfully." });
         }
 
         [HttpPost("upload-image")]

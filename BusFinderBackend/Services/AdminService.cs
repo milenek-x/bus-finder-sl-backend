@@ -208,53 +208,13 @@ namespace BusFinderBackend.Services
             return oobCode;
         }
 
-        public async Task<string> UploadProfilePictureAsync(Stream profileImage, string fileName)
-        {
-            return await _driveImageService.UploadImageAsync(profileImage, fileName);
-        }
-
-        public async Task<bool> VerifyOobCodeAsync(string email, string oobCode)
-        {
-            // Retrieve the stored oobCode for the given email
-            string? storedOobCode = await _adminRepository.RetrieveOobCodeAsync(email);
-
-            // Compare the provided oobCode with the stored one
-            if (storedOobCode == oobCode)
-            {
-                // If valid, delete the oobCode from Firestore
-                await _adminRepository.DeleteOobCodeAsync(email);
-                return true;
-            }
-            return false;
-        }
-
-        public async Task<byte[]> GetProfilePictureAsync(string profilePictureUrl)
-        {
-            if (string.IsNullOrEmpty(profilePictureUrl))
-            {
-                throw new ArgumentException("Profile picture URL cannot be null or empty.", nameof(profilePictureUrl));
-            }
-
-            // Extract the file ID from the URL
-            var fileId = profilePictureUrl.Split('=')[1];
-            byte[] imageBytes = await _driveImageService.GetImageAsync(profilePictureUrl);
-            
-            return imageBytes; // Return the image as a byte array
-        }
-
-        public async Task<string> UpdateProfilePictureAsync(string adminId, Stream profileImage, string fileName)
+        public async Task UpdateAvatarAsync(string adminId, int avatarId)
         {
             var admin = await _adminRepository.GetAdminByIdAsync(adminId);
             if (admin == null)
-            {
                 throw new InvalidOperationException("Admin not found.");
-            }
-
-            // Upload the new image using DriveImageService
-            var newImageUrl = await _driveImageService.UploadImageAsync(profileImage, fileName);
-            admin.ProfilePicture = newImageUrl; // Update the admin's profile picture URL
-            await _adminRepository.UpdateAdminAsync(adminId, admin); // Ensure to update the admin record
-            return newImageUrl;
+            admin.AvatarId = avatarId;
+            await _adminRepository.UpdateAdminAsync(adminId, admin);
         }
 
         public async Task<string?> GetAdminIdByEmailAsync(string email)

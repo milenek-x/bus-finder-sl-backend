@@ -18,7 +18,7 @@ namespace BusFinderBackend.Model
         public string? TelNo { get; set; }
 
         [FirestoreProperty]
-        public string? ProfilePicture { get; set; }
+        public int AvatarId { get; set; }
 
         [FirestoreProperty]
         public string? Email { get; set; }

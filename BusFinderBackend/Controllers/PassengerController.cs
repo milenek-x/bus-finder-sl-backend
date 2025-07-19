@@ -67,11 +67,6 @@ namespace BusFinderBackend.Controllers
         [ProducesResponseType(400)]
         public async Task<IActionResult> AddPassenger([FromBody] Passenger passenger)
         {
-            if (string.IsNullOrEmpty(passenger.ProfileImageUrl))
-            {
-                return BadRequest("Profile image URL must be provided.");
-            }
-
             var result = await _passengerService.AddPassengerAsync(passenger);
             if (!result.Success)
             {
@@ -291,98 +286,12 @@ namespace BusFinderBackend.Controllers
             return BadRequest(new { error = "Invalid or expired oobCode." });
         }
 
-        [HttpPost("upload-profile-picture")]
-        [SwaggerOperation(Summary = "Upload a profile picture for a passenger.")]
-        [ProducesResponseType(200)]
-        [ProducesResponseType(400)]
-        public async Task<IActionResult> UploadProfilePicture(IFormFile file)
+        [HttpPut("{passengerId}/avatar")]
+        [SwaggerOperation(Summary = "Update the avatar for a passenger.")]
+        public async Task<IActionResult> UpdateAvatar(string passengerId, [FromBody] int avatarId)
         {
-            if (file == null || file.Length == 0)
-            {
-                return BadRequest("No file uploaded.");
-            }
-
-            try
-            {
-                using (var stream = file.OpenReadStream())
-                {
-                    var fileName = $"profile_picture_{DateTime.UtcNow.Ticks}.jpg";
-                    var link = await _passengerService.UploadProfilePictureAsync(stream, fileName);
-                    return Ok(new { link });
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error uploading profile picture.");
-                return StatusCode(500, new { error = "Failed to upload profile picture.", message = ex.Message });
-            }
-        }
-
-        [HttpGet("profile-picture/{passengerId}")]
-        [SwaggerOperation(Summary = "Get the profile picture of a passenger.")]
-        [ProducesResponseType(200)]
-        [ProducesResponseType(400)]
-        [ProducesResponseType(404)]
-        public async Task<IActionResult> GetProfilePicture(string passengerId)
-        {
-            var passenger = await _passengerService.GetPassengerByIdAsync(passengerId);
-            if (passenger == null || string.IsNullOrEmpty(passenger.ProfileImageUrl))
-            {
-                return NotFound(new { error = "Admin not found or profile picture not set." });
-            }
-
-            var imageBytes = await _passengerService.GetProfilePictureAsync(passenger.ProfileImageUrl);
-            return File(imageBytes, "image/jpeg"); // Return the image as a file response
-        }
-
-        [HttpPut("update-profile-picture/{passengerId}")]
-        [SwaggerOperation(Summary = "Update the profile picture of a passenger.")]
-        [ProducesResponseType(200)]
-        [ProducesResponseType(400)]
-        public async Task<IActionResult> UpdateProfilePicture(string passengerId, IFormFile file)
-        {
-            if (file == null || file.Length == 0)
-            {
-                return BadRequest("No file uploaded.");
-            }
-
-            try
-            {
-                using (var stream = new MemoryStream())
-                {
-                    await file.CopyToAsync(stream);
-                    stream.Position = 0;
-                    var fileName = $"profile_picture_{passengerId}_{DateTime.UtcNow.Ticks}.jpg";
-                    var link = await _passengerService.UpdateProfilePictureAsync(passengerId, stream, fileName);
-                    return Ok(new { link });
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error updating profile picture for passenger {PassengerId}.", passengerId);
-                return StatusCode(500, new { error = "Failed to update profile picture.", message = ex.Message });
-            }
-        }
-
-        [HttpGet("get-id-by-email/{email}")]
-        [SwaggerOperation(Summary = "Get passenger ID by email.")]
-        [ProducesResponseType(200)]
-        [ProducesResponseType(400)]
-        [ProducesResponseType(404)]
-        public async Task<IActionResult> GetPassengerIdByEmail(string email)
-        {
-            if (string.IsNullOrEmpty(email))
-            {
-                return BadRequest("Email cannot be null or empty.");
-            }
-
-            var passengerId = await _passengerService.GetPassengerIdByEmailAsync(email);
-            if (passengerId == null)
-            {
-                return NotFound(new { error = "Passenger not found." });
-            }
-
-            return Ok(new { passengerId });
+            await _passengerService.UpdateAvatarAsync(passengerId, avatarId);
+            return Ok(new { message = "Avatar updated successfully." });
         }
 
         [HttpGet("{passengerId}/favorites")]

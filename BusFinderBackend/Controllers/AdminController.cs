@@ -93,6 +93,14 @@ namespace BusFinderBackend.Controllers
             return NoContent();
         }
 
+        [HttpPut("{adminId}/avatar")]
+        [SwaggerOperation(Summary = "Update the avatar for an admin.")]
+        public async Task<IActionResult> UpdateAvatar(string adminId, [FromBody] int avatarId)
+        {
+            await _adminService.UpdateAvatarAsync(adminId, avatarId);
+            return Ok(new { message = "Avatar updated successfully." });
+        }
+
         [HttpDelete("{id}")]
         [SwaggerOperation(Summary = "Delete an admin by ID.")]
         [ProducesResponseType(200)]

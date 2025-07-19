@@ -235,40 +235,13 @@ namespace BusFinderBackend.Services
             return await _staffRepository.GetStaffByRoleAsync(role);
         }
 
-        public async Task<string> UploadProfilePictureAsync(Stream profileImage, string fileName)
+        public async Task UpdateAvatarAsync(string staffId, int avatarId)
         {
-            // Logic to upload the profile image using DriveImageService
-            return await _driveImageService.UploadImageAsync(profileImage, fileName);
-        }
-
-        public async Task<byte[]> GetProfilePictureAsync(string profilePictureUrl)
-        {
-            if (string.IsNullOrEmpty(profilePictureUrl))
-            {
-                throw new ArgumentException("Profile picture URL cannot be null or empty.", nameof(profilePictureUrl));
-            }
-
-            // Extract the file ID from the URL
-            var fileId = profilePictureUrl.Split('=')[1];
-            byte[] imageBytes = await _driveImageService.GetImageAsync(profilePictureUrl);
-            
-            return imageBytes; // Return the image as a byte array
-        }
-
-        public async Task<string> UpdateProfilePictureAsync(string staffId, Stream profileImage, string fileName)
-        {
-            // Logic to update the profile image using DriveImageService
             var staff = await _staffRepository.GetStaffByIdAsync(staffId);
             if (staff == null)
-            {
                 throw new InvalidOperationException("Staff not found.");
-            }
-
-            // Upload the new image
-            var newImageUrl = await _driveImageService.UploadImageAsync(profileImage, fileName);
-            staff.ProfilePicture = newImageUrl;
-            await _staffRepository.UpdateStaffAsync(staffId, staff); // Ensure to update the staff record
-            return newImageUrl;
+            staff.AvatarId = avatarId;
+            await _staffRepository.UpdateStaffAsync(staffId, staff);
         }
 
         public async Task<string?> GetStaffIdByEmailAsync(string email)
