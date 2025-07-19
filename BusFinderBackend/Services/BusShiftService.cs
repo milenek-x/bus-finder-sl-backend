@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using System.Linq;
 using System;
 using BusFinderBackend.DTO; // Update the using directive
+using BusFinderBackend.Services; // Added this using directive for NotificationService
 
 namespace BusFinderBackend.Services
 {
@@ -12,11 +13,13 @@ namespace BusFinderBackend.Services
     {
         private readonly BusShiftRepository _busShiftRepository;
         private readonly BusRouteRepository _busRouteRepository;
+        private readonly NotificationService _notificationService;
 
-        public BusShiftService(BusShiftRepository busShiftRepository, BusRouteRepository busRouteRepository)
+        public BusShiftService(BusShiftRepository busShiftRepository, BusRouteRepository busRouteRepository, NotificationService notificationService)
         {
             _busShiftRepository = busShiftRepository;
             _busRouteRepository = busRouteRepository;
+            _notificationService = notificationService;
         }
 
         public async Task<List<BusShift>> GetAllBusShiftsAsync()
@@ -55,6 +58,8 @@ namespace BusFinderBackend.Services
             }
 
             await _busShiftRepository.AddBusShiftAsync(busShift);
+            // Notify staff group
+            await _notificationService.NotifyGroupAsync("staff", $"A new shift has been created: {busShift.ShiftId}");
         }
 
         public async Task UpdateBusShiftAsync(string shiftId, BusShift busShift)

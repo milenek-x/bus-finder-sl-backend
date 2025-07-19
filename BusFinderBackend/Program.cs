@@ -86,7 +86,13 @@ builder.Services.AddScoped<BusRouteService>(provider =>
 builder.Services.AddScoped<BusRepository>();
 builder.Services.AddScoped<BusService>();
 builder.Services.AddScoped<BusShiftRepository>();
-builder.Services.AddScoped<BusShiftService>();
+builder.Services.AddScoped<BusShiftService>(provider =>
+    new BusShiftService(
+        provider.GetRequiredService<BusShiftRepository>(),
+        provider.GetRequiredService<BusRouteRepository>(),
+        provider.GetRequiredService<NotificationService>()
+    )
+);
 builder.Services.AddScoped<PassengerRepository>();
 builder.Services.AddScoped<PassengerService>(provider =>
     new PassengerService(
@@ -102,6 +108,7 @@ builder.Services.AddScoped<DriveImageService>();
 builder.Services.AddScoped<MapService>();
 builder.Services.AddScoped<FeedbackRepository>();
 builder.Services.AddScoped<FeedbackService>();
+builder.Services.AddScoped<NotificationService>();
 
 // Register SignalR services
 builder.Services.AddSignalR();
@@ -141,5 +148,6 @@ app.MapControllers();
 // Map the SignalR hub
 app.MapHub<BusHub>("/busHub");
 app.MapHub<PassengerHub>("/passengerHub");
+app.MapHub<NotificationHub>("/notificationHub");
 
 app.Run();
