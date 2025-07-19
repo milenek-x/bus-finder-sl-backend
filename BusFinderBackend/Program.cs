@@ -84,7 +84,16 @@ builder.Services.AddScoped<BusRouteService>(provider =>
     )
 );
 builder.Services.AddScoped<BusRepository>();
-builder.Services.AddScoped<BusService>();
+builder.Services.AddScoped<BusService>(provider =>
+    new BusService(
+        provider.GetRequiredService<BusRepository>(),
+        provider.GetRequiredService<StaffService>(),
+        provider.GetRequiredService<BusRouteRepository>(),
+        provider.GetRequiredService<IConfiguration>(),
+        provider.GetRequiredService<IHubContext<BusHub>>(),
+        provider.GetRequiredService<NotificationService>()
+    )
+);
 builder.Services.AddScoped<BusShiftRepository>();
 builder.Services.AddScoped<BusShiftService>(provider =>
     new BusShiftService(
@@ -107,7 +116,14 @@ builder.Services.AddScoped<PassengerService>(provider =>
 builder.Services.AddScoped<DriveImageService>();
 builder.Services.AddScoped<MapService>();
 builder.Services.AddScoped<FeedbackRepository>();
-builder.Services.AddScoped<FeedbackService>();
+builder.Services.AddScoped<FeedbackService>(provider =>
+    new FeedbackService(
+        provider.GetRequiredService<FeedbackRepository>(),
+        provider.GetRequiredService<PassengerRepository>(),
+        provider.GetRequiredService<AdminRepository>(),
+        provider.GetRequiredService<NotificationService>()
+    )
+);
 builder.Services.AddScoped<NotificationService>();
 
 // Register SignalR services

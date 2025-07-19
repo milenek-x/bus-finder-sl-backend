@@ -103,5 +103,21 @@ namespace BusFinderBackend.Controllers
                 return NotFound();
             return Ok(shifts);
         }
+
+        [HttpPost("notify-shift-start")]
+        [SwaggerOperation(Summary = "Notify all clients that a staff member has started their shift.")]
+        public async Task<IActionResult> NotifyShiftStart([FromBody] string staffId)
+        {
+            await _busShiftService.NotifyShiftStartAsync(staffId);
+            return Ok(new { message = "Shift start notification sent." });
+        }
+
+        [HttpPost("notify-shift-end")]
+        [SwaggerOperation(Summary = "Notify all clients that a staff member has ended their shift.")]
+        public async Task<IActionResult> NotifyShiftEnd([FromBody] string staffId)
+        {
+            await _busShiftService.NotifyShiftEndAsync(staffId);
+            return Ok(new { message = "Shift end notification sent." });
+        }
     }
 } 

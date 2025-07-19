@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using BusFinderBackend.Model;
 using BusFinderBackend.DTOs.Feedback;
+using BusFinderBackend.Services;
 
 namespace BusFinderBackend.Services
 {
@@ -11,12 +12,14 @@ namespace BusFinderBackend.Services
         private readonly FeedbackRepository _feedbackRepository;
         private readonly PassengerRepository _passengerRepository;
         private readonly AdminRepository _adminRepository;
+        private readonly NotificationService _notificationService;
 
-        public FeedbackService(FeedbackRepository feedbackRepository, PassengerRepository passengerRepository, AdminRepository adminRepository)
+        public FeedbackService(FeedbackRepository feedbackRepository, PassengerRepository passengerRepository, AdminRepository adminRepository, NotificationService notificationService)
         {
             _feedbackRepository = feedbackRepository;
             _passengerRepository = passengerRepository;
             _adminRepository = adminRepository;
+            _notificationService = notificationService;
         }
 
         public async Task<List<Feedback>> GetAllFeedbacksAsync()
@@ -60,6 +63,8 @@ namespace BusFinderBackend.Services
             };
 
             await _feedbackRepository.AddFeedbackAsync(feedback);
+            // Notify all (admins, staff, etc.)
+            await _notificationService.NotifyAllAsync($"New feedback received: {feedback.Subject}");
             return (true, null, null, feedback, feedback.FeedbackId);
         }
 
@@ -90,6 +95,11 @@ namespace BusFinderBackend.Services
             feedback.Reply = replyDto.Reply;
             feedback.RepliedTime = DateTime.UtcNow;
             await _feedbackRepository.UpdateFeedbackAsync(feedbackId, feedback);
+            // Notify the passenger who submitted the feedback
+            if (!string.IsNullOrEmpty(feedback.PassengerId))
+            {
+                await _notificationService.NotifyUserAsync(feedback.PassengerId, $"Your feedback has been replied: {feedback.Subject}");
+            }
             return (true, null, null);
         }
 

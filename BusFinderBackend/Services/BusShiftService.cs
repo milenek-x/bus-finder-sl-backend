@@ -200,5 +200,15 @@ namespace BusFinderBackend.Services
             var twoDaysFromInput = inputDateTime.AddDays(2);
             return shiftDateTime.Date >= inputDateTime.Date && shiftDateTime.Date <= twoDaysFromInput.Date;
         }
+
+        public async Task NotifyShiftStartAsync(string staffId)
+        {
+            await _notificationService.NotifyAllAsync($"Staff {staffId} has started their shift.");
+        }
+
+        public async Task NotifyShiftEndAsync(string staffId)
+        {
+            await _notificationService.NotifyAllAsync($"Staff {staffId} has ended their shift.");
+        }
     }
 } 

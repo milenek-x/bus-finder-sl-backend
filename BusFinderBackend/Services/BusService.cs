@@ -11,6 +11,7 @@ using System.Linq; // Added for Select and ToList
 using System; // Added for Console.WriteLine
 using Microsoft.AspNetCore.SignalR;
 using BusFinderBackend.Hubs; // Adjust the namespace as per your project structure
+using BusFinderBackend.Services; // Added for NotificationService
 
 namespace BusFinderBackend.Services
 {
@@ -21,14 +22,16 @@ namespace BusFinderBackend.Services
         private readonly BusRouteRepository _busRouteRepository;
         private readonly IConfiguration _configuration;
         private readonly IHubContext<BusHub> _hubContext;
+        private readonly NotificationService _notificationService;
 
-        public BusService(BusRepository busRepository, StaffService staffService, BusRouteRepository busRouteRepository, IConfiguration configuration, IHubContext<BusHub> hubContext)
+        public BusService(BusRepository busRepository, StaffService staffService, BusRouteRepository busRouteRepository, IConfiguration configuration, IHubContext<BusHub> hubContext, NotificationService notificationService)
         {
             _busRepository = busRepository;
             _staffService = staffService;
             _busRouteRepository = busRouteRepository;
             _configuration = configuration;
             _hubContext = hubContext;
+            _notificationService = notificationService;
         }
 
         public async Task<List<Bus>> GetAllBusesAsync()
@@ -156,6 +159,10 @@ namespace BusFinderBackend.Services
         public async Task UpdateSosStatusAsync(string numberPlate, bool sosStatus)
         {
             await _busRepository.UpdateSosStatusAsync(numberPlate, sosStatus);
+            if (sosStatus)
+            {
+                await _notificationService.NotifyAllAsync($"SOS! Bus {numberPlate} has sent an SOS signal.");
+            }
         }
 
         public async Task UpdateCurrentLocationAsync(string numberPlate, double? latitude, double? longitude)
