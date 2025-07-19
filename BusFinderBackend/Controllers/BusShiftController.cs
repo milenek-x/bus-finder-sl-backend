@@ -105,26 +105,26 @@ namespace BusFinderBackend.Controllers
         }
 
         [HttpPost("notify-shift-start")]
-        [SwaggerOperation(Summary = "Notify all clients that a staff member has started their shift.")]
-        public async Task<IActionResult> NotifyShiftStart([FromBody] string staffId)
+        [SwaggerOperation(Summary = "Notify all clients that a bus has started its shift.")]
+        public async Task<IActionResult> NotifyShiftStart([FromBody] string numberPlate)
         {
-            await _busShiftService.NotifyShiftStartAsync(staffId);
+            await _busShiftService.NotifyShiftStartAsync(numberPlate);
             return Ok(new { message = "Shift start notification sent." });
         }
 
         [HttpPost("notify-shift-end")]
-        [SwaggerOperation(Summary = "Notify all clients that a staff member has ended their shift.")]
-        public async Task<IActionResult> NotifyShiftEnd([FromBody] string staffId)
+        [SwaggerOperation(Summary = "Notify all clients that a bus has ended its shift.")]
+        public async Task<IActionResult> NotifyShiftEnd([FromBody] string numberPlate)
         {
-            await _busShiftService.NotifyShiftEndAsync(staffId);
+            await _busShiftService.NotifyShiftEndAsync(numberPlate);
             return Ok(new { message = "Shift end notification sent." });
         }
 
         [HttpPost("notify-shift-interval")]
-        [SwaggerOperation(Summary = "Notify all clients that a staff member is on a shift interval.")]
-        public async Task<IActionResult> NotifyShiftInterval([FromBody] string staffId)
+        [SwaggerOperation(Summary = "Notify all clients that a bus is on a shift interval.")]
+        public async Task<IActionResult> NotifyShiftInterval([FromBody] string numberPlate)
         {
-            await _busShiftService.NotifyShiftIntervalAsync(staffId);
+            await _busShiftService.NotifyShiftIntervalAsync(numberPlate);
             return Ok(new { message = "Shift interval notification sent." });
         }
     }

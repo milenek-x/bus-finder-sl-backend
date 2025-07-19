@@ -201,19 +201,19 @@ namespace BusFinderBackend.Services
             return shiftDateTime.Date >= inputDateTime.Date && shiftDateTime.Date <= twoDaysFromInput.Date;
         }
 
-        public async Task NotifyShiftStartAsync(string staffId)
+        public async Task NotifyShiftStartAsync(string numberPlate)
         {
-            await _notificationService.NotifyAllAsync($"Staff {staffId} has started their shift.", "ShiftStarted");
+            await _notificationService.NotifyAllAsync($"Bus {numberPlate} has started its shift.", "ShiftStarted");
         }
 
-        public async Task NotifyShiftEndAsync(string staffId)
+        public async Task NotifyShiftEndAsync(string numberPlate)
         {
-            await _notificationService.NotifyAllAsync($"Staff {staffId} has ended their shift.", "ShiftEnded");
+            await _notificationService.NotifyAllAsync($"Bus {numberPlate} has ended its shift.", "ShiftEnded");
         }
 
-        public async Task NotifyShiftIntervalAsync(string staffId)
+        public async Task NotifyShiftIntervalAsync(string numberPlate)
         {
-            await _notificationService.NotifyAllAsync($"Staff {staffId} is on a shift interval.", "ShiftInterval");
+            await _notificationService.NotifyAllAsync($"Bus {numberPlate} is on a shift interval.", "ShiftInterval");
         }
     }
 } 
