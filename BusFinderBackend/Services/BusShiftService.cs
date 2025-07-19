@@ -210,5 +210,10 @@ namespace BusFinderBackend.Services
         {
             await _notificationService.NotifyAllAsync($"Staff {staffId} has ended their shift.", "ShiftEnded");
         }
+
+        public async Task NotifyShiftIntervalAsync(string staffId)
+        {
+            await _notificationService.NotifyAllAsync($"Staff {staffId} is on a shift interval.", "ShiftInterval");
+        }
     }
 } 

@@ -119,5 +119,13 @@ namespace BusFinderBackend.Controllers
             await _busShiftService.NotifyShiftEndAsync(staffId);
             return Ok(new { message = "Shift end notification sent." });
         }
+
+        [HttpPost("notify-shift-interval")]
+        [SwaggerOperation(Summary = "Notify all clients that a staff member is on a shift interval.")]
+        public async Task<IActionResult> NotifyShiftInterval([FromBody] string staffId)
+        {
+            await _busShiftService.NotifyShiftIntervalAsync(staffId);
+            return Ok(new { message = "Shift interval notification sent." });
+        }
     }
 } 
