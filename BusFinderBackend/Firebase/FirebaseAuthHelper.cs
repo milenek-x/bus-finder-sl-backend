@@ -176,8 +176,9 @@ namespace BusFinderBackend.Firebase
 
             var payload = new
             {
-                idToken,
-                providerId = "google.com",
+                postBody = $"id_token={idToken}&providerId=google.com",
+                requestUri = "https://bus-finder-sl-a7c6a549fbb1.herokuapp.com/", // This can be any valid URL
+                returnIdpCredential = true,
                 returnSecureToken = true
             };
 
