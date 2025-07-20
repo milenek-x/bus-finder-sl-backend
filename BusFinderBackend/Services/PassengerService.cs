@@ -446,5 +446,11 @@ namespace BusFinderBackend.Services
                 throw new InvalidOperationException("Passenger not found.");
             return passenger.FavoriteRoutes;
         }
+
+        public async Task<string?> GetPassengerIdByEmailAsync(string email)
+        {
+            var passenger = await _passengerRepository.GetPassengerByEmailAsync(email);
+            return passenger?.PassengerId;
+        }
     }
 } 

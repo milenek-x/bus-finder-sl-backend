@@ -369,5 +369,19 @@ namespace BusFinderBackend.Controllers
                 return NotFound(new { error = ex.Message });
             }
         }
+
+        [HttpGet("get-id-by-email/{email}")]
+        [SwaggerOperation(Summary = "Get a passenger's ID by email.")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(404)]
+        public async Task<IActionResult> GetPassengerIdByEmail(string email)
+        {
+            var passengerId = await _passengerService.GetPassengerIdByEmailAsync(email);
+            if (passengerId == null)
+            {
+                return NotFound(new { error = "Passenger not found for the provided email." });
+            }
+            return Ok(new { passengerId });
+        }
     }
 } 
