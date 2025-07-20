@@ -287,6 +287,11 @@ namespace BusFinderBackend.Services
                 }
 
                 // Check if user already exists
+                if (string.IsNullOrEmpty(passenger.Email))
+                {
+                    return (false, "INVALID_EMAIL", "Email is required for registration.", null);
+                }
+                
                 var existingPassenger = await _passengerRepository.GetPassengerByEmailAsync(passenger.Email);
                 if (existingPassenger != null)
                 {
@@ -303,13 +308,13 @@ namespace BusFinderBackend.Services
                 await _passengerRepository.AddPassengerAsync(passenger);
 
                 // Send welcome email
-                await _emailService.SendCredentialsEmailAsync(passenger.Email, "Google Account", "Passenger", passenger.FirstName ?? "User");
+                await _emailService.SendCredentialsEmailAsync(passenger.Email!, "Google Account", "Passenger", passenger.FirstName ?? "User");
 
                 return (true, null, null, passenger.PassengerId);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error during Google registration for passenger {Email}", passenger.Email);
+                _logger.LogError(ex, "Error during Google registration for passenger {Email}", passenger.Email ?? "unknown");
                 return (false, "REGISTRATION_FAILED", "Failed to register with Google.", null);
             }
         }
