@@ -161,9 +161,12 @@ namespace BusFinderBackend.Services
                 string link = await FirebaseAuth.DefaultInstance.GeneratePasswordResetLinkAsync(email);
                 string oobCode = ExtractOobCodeFromLink(link);
 
-                // Retrieve the admin's details to get the name
-                var staff = await _staffRepository.GetStaffByEmailAsync(email); // Assuming email is used as ID or modify accordingly
+                // Retrieve the staff's details to get the name
+                var staff = await _staffRepository.GetStaffByEmailAsync(email);
                 string recipientName = staff?.FirstName ?? "User"; // Default to "User" if name is not available
+                
+                // Store the oobCode in Firestore
+                await _staffRepository.StoreOobCodeAsync(email, oobCode);
                 
                 // Send the password reset email
                 await _emailService.SendPasswordResetEmailAsync(email, oobCode, recipientName);
@@ -202,6 +205,21 @@ namespace BusFinderBackend.Services
                 // Handle exceptions (e.g., user not found, invalid token)
                 throw new InvalidOperationException("Failed to reset password.", ex);
             }
+        }
+
+        public async Task<bool> VerifyOobCodeAsync(string email, string oobCode)
+        {
+            // Retrieve the stored oobCode for the given email
+            string? storedOobCode = await _staffRepository.RetrieveOobCodeAsync(email);
+
+            // Compare the provided oobCode with the stored one
+            if (storedOobCode == oobCode)
+            {
+                // If valid, delete the oobCode from Firestore
+                await _staffRepository.DeleteOobCodeAsync(email);
+                return true;
+            }
+            return false;
         }
 
         private string ExtractOobCodeFromLink(string link)

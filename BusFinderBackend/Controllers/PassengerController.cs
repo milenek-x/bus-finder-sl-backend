@@ -188,6 +188,30 @@ namespace BusFinderBackend.Controllers
             return Ok(new { message = "Google Sign-In successful." });
         }
 
+        [HttpPost("register-google")]
+        [SwaggerOperation(Summary = "Register a new passenger with Google.")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(400)]
+        public async Task<IActionResult> RegisterWithGoogle([FromBody] GoogleRegistrationRequestDto request)
+        {
+            if (request == null || string.IsNullOrEmpty(request.IdToken) || request.Passenger == null)
+            {
+                return BadRequest(new { error = "IdToken and Passenger data are required." });
+            }
+
+            var result = await _passengerService.RegisterWithGoogleAsync(request.IdToken, request.Passenger);
+            if (!result.Success)
+            {
+                return BadRequest(new
+                {
+                    error = result.ErrorCode,
+                    message = result.ErrorMessage
+                });
+            }
+
+            return CreatedAtAction(nameof(GetPassengerById), new { id = result.PassengerId }, new { passengerId = result.PassengerId, message = "Passenger registered successfully with Google." });
+        }
+
         [HttpPost("{passengerId}/favorite-routes")]
         [SwaggerOperation(Summary = "Add a favorite route for a passenger.")]
         [ProducesResponseType(200)]

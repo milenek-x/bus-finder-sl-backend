@@ -9,11 +9,13 @@ namespace BusFinderBackend.Repositories
     public class StaffRepository
     {
         private readonly CollectionReference _staffCollection;
+        private readonly CollectionReference _passwordResetCodesCollection;
         private readonly FirestoreDb _firestoreDb;
 
         public StaffRepository(FirestoreDb firestoreDb)
         {
             _staffCollection = firestoreDb.Collection("testStaff");
+            _passwordResetCodesCollection = firestoreDb.Collection("testPasswordResetCodes");
             _firestoreDb = firestoreDb;
         }
 
@@ -108,6 +110,37 @@ namespace BusFinderBackend.Repositories
                 staffList.Add(staff);
             }
             return staffList;
+        }
+
+        public async Task<string?> RetrieveOobCodeAsync(string email)
+        {
+            var document = await _passwordResetCodesCollection.Document(email).GetSnapshotAsync();
+            if (document.Exists)
+            {
+                var data = document.ToDictionary();
+                // Check if the code is expired
+                if (data.ContainsKey("Expiration") && DateTime.UtcNow < ((Timestamp)data["Expiration"]).ToDateTime())
+                {
+                    return data["OobCode"].ToString();
+                }
+            }
+            return null; // Return null if no valid oobCode found
+        }
+
+        public async Task DeleteOobCodeAsync(string email)
+        {
+            await _passwordResetCodesCollection.Document(email).DeleteAsync();
+        }
+
+        public async Task StoreOobCodeAsync(string email, string oobCode)
+        {
+            var resetCodeDocument = _passwordResetCodesCollection.Document(email);
+            var data = new
+            {
+                OobCode = oobCode,
+                Expiration = DateTime.UtcNow.AddHours(1) // Set expiration time (e.g., 1 hour)
+            };
+            await resetCodeDocument.SetAsync(data);
         }
     }
 }

@@ -268,6 +268,52 @@ namespace BusFinderBackend.Services
             return (true, null, null);
         }
 
+        public async Task<(bool Success, string? ErrorCode, string? ErrorMessage, string? PassengerId)> RegisterWithGoogleAsync(string idToken, Passenger passenger)
+        {
+            var firebaseSection = _configuration.GetSection("Firebase");
+            var apiKey = firebaseSection["ApiKey"];
+            if (string.IsNullOrEmpty(apiKey))
+            {
+                return (false, "NO_API_KEY", "Firebase API key is not configured.", null);
+            }
+
+            try
+            {
+                // Verify the Google ID token and get user info
+                var result = await Firebase.FirebaseAuthHelper.GoogleSignInAsync(apiKey, idToken);
+                if (!result.Success)
+                {
+                    return (false, result.ErrorCode, result.ErrorMessage, null);
+                }
+
+                // Check if user already exists
+                var existingPassenger = await _passengerRepository.GetPassengerByEmailAsync(passenger.Email);
+                if (existingPassenger != null)
+                {
+                    return (false, "EMAIL_EXISTS", "A passenger with this email already exists.", null);
+                }
+
+                // Generate passenger ID if not provided
+                if (string.IsNullOrEmpty(passenger.PassengerId))
+                {
+                    passenger.PassengerId = await _passengerRepository.GenerateNextPassengerIdAsync();
+                }
+
+                // Add the passenger to the repository
+                await _passengerRepository.AddPassengerAsync(passenger);
+
+                // Send welcome email
+                await _emailService.SendCredentialsEmailAsync(passenger.Email, "Google Account", "Passenger", passenger.FirstName ?? "User");
+
+                return (true, null, null, passenger.PassengerId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error during Google registration for passenger {Email}", passenger.Email);
+                return (false, "REGISTRATION_FAILED", "Failed to register with Google.", null);
+            }
+        }
+
         public async Task AddFavoriteRouteAsync(string passengerId, string routeNumber)
         {
             // Assuming routeNumber is the same as routeId for your application logic
@@ -370,19 +416,6 @@ namespace BusFinderBackend.Services
                 throw new InvalidOperationException("Passenger not found.");
             passenger.AvatarId = avatarId;
             await _passengerRepository.UpdatePassengerAsync(passengerId, passenger);
-        }
-
-        private void StoreOobCode(string email, string oobCode)
-        {
-            // Implement logic to store the oobCode associated with the email
-            // This could be in-memory storage, a database, or any other temporary storage
-        }
-
-        private string RetrieveOobCode(string email)
-        {
-            // Implement logic to retrieve the stored oobCode for the given email
-            // This could be in-memory storage, a database, or any other temporary storage
-            throw new NotImplementedException();
         }
 
         public async Task<(List<Place>? FavoritePlaces, List<string>? FavoriteRoutes)> GetFavoritesAsync(string passengerId)
