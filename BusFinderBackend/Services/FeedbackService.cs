@@ -98,7 +98,7 @@ namespace BusFinderBackend.Services
             // Notify the passenger who submitted the feedback
             if (!string.IsNullOrEmpty(feedback.PassengerId))
             {
-                await _notificationService.NotifyUserAsync(feedback.PassengerId, $"Your feedback has been replied: {feedback.Subject}");
+                await _notificationService.NotifyAllAsync($"Feedback from Passenger {feedback.PassengerId} has been replied: {feedback.Subject}", "FeedbackReplied");
             }
             return (true, null, null);
         }
