@@ -5,6 +5,6 @@ namespace BusFinderBackend.DTOs.Passenger
     public class GoogleRegistrationRequestDto
     {
         public string IdToken { get; set; } = string.Empty;
-        public Passenger Passenger { get; set; } = new Passenger();
+        public BusFinderBackend.Model.Passenger Passenger { get; set; } = new BusFinderBackend.Model.Passenger();
     }
 } 
